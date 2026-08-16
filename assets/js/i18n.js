@@ -77,6 +77,12 @@ const STRINGS = {
 
     share: 'Compartir',
     shareCopied: 'Enllaç copiat',
+    listUpdated: (shown, total, how) => {
+      const parts = [shown === total ? `${total} centres` : `${shown} de ${total} centres`];
+      if (how.openOnly) parts.push('només oberts ara');
+      if (how.distance) parts.push('ordenats per distància');
+      return `${parts.join(', ')}.`;
+    },
     privacy: 'Privacitat',
     privacyTitle: 'Privacitat',
     privacyUpdated: 'Actualitzat l’agost de 2026',
@@ -182,6 +188,12 @@ const STRINGS = {
 
     share: 'Compartir',
     shareCopied: 'Enlace copiado',
+    listUpdated: (shown, total, how) => {
+      const parts = [shown === total ? `${total} centros` : `${shown} de ${total} centros`];
+      if (how.openOnly) parts.push('solo abiertos ahora');
+      if (how.distance) parts.push('ordenados por distancia');
+      return `${parts.join(', ')}.`;
+    },
     privacy: 'Privacidad',
     privacyTitle: 'Privacidad',
     privacyUpdated: 'Actualizado en agosto de 2026',
@@ -287,6 +299,12 @@ const STRINGS = {
 
     share: 'Share',
     shareCopied: 'Link copied',
+    listUpdated: (shown, total, how) => {
+      const parts = [shown === total ? `${total} centres` : `${shown} of ${total} centres`];
+      if (how.openOnly) parts.push('open now only');
+      if (how.distance) parts.push('sorted by distance');
+      return `${parts.join(', ')}.`;
+    },
     privacy: 'Privacy',
     privacyTitle: 'Privacy',
     privacyUpdated: 'Updated August 2026',

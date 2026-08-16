@@ -1,0 +1,5 @@
+node_modules/
+_site/
+
+# stray screenshots from local test runs
+/*.png

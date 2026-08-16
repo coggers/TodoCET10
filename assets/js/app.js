@@ -13,6 +13,7 @@ const resetButton = document.getElementById('reset');
 const sortNote = document.getElementById('sortNote');
 const emptyNote = document.getElementById('empty');
 const bookingNotice = document.getElementById('bookingNotice');
+const liveStatus = document.getElementById('liveStatus');
 const infoDialog = document.getElementById('infoDialog');
 
 const SORT_KEY = 'cet10hub.sort';
@@ -93,9 +94,24 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 function animate(update) {
   if (!document.startViewTransition || reducedMotion.matches) {
     update();
-    return;
+  } else {
+    document.startViewTransition(update);
   }
-  document.startViewTransition(update);
+  // Reordering and filtering rewrite the list silently; say what happened.
+  announceList();
+}
+
+/**
+ * Politely announce the resulting list. Only called from user actions — the
+ * once-a-minute refresh must not chatter at screen-reader users.
+ */
+function announceList() {
+  const strings = t(lang);
+  const shown = visibleGyms().length;
+  liveStatus.textContent = strings.listUpdated(shown, GYMS.length, {
+    distance: sortMode === 'distance' && !!distances,
+    openOnly,
+  });
 }
 
 /** Closing soon still counts as open — you can still get a session in. */
@@ -234,7 +250,7 @@ const starSvg = (filled, className) =>
      fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.7"
      stroke-linecap="round" stroke-linejoin="round">${ICONS.join}</svg>`;
 
-function renderGym(gym, strings) {
+function renderGym(gym, strings, index) {
   const item = document.createElement('li');
   item.className = 'gym';
   item.style.setProperty('--accent', gym.accent);
@@ -245,8 +261,13 @@ function renderGym(gym, strings) {
 
   const media = document.createElement('div');
   media.className = 'gym__media';
+  // The first card's photo is the LCP element; lazy-loading it delays the
+  // largest paint for no benefit, since it is above the fold on every phone.
+  const eager = index === 0;
   media.innerHTML = `
-    <img src="${gym.photo}" alt="" width="1000" height="563" loading="lazy" decoding="async">
+    <img src="${gym.photo}" alt="" width="1000" height="563"
+         loading="${eager ? 'eager' : 'lazy'}"
+         fetchpriority="${eager ? 'high' : 'auto'}" decoding="async">
     <h2 class="gym__name"><span class="gym__cem">CEM</span>${gym.name}</h2>`;
   media.append(favouriteButton(gym, strings));
 
@@ -375,7 +396,7 @@ function render() {
   document.documentElement.lang = lang;
 
   const gyms = visibleGyms();
-  gymList.replaceChildren(...gyms.map((gym) => renderGym(gym, strings)));
+  gymList.replaceChildren(...gyms.map((gym, i) => renderGym(gym, strings, i)));
   renderQuickBook(strings);
   renderSort(strings);
   sortNote.textContent = strings[noteKey];

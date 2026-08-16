@@ -30,7 +30,11 @@
 
   --status-open: var(--status-open-on-light);
   --status-soon: var(--status-soon-on-light);
-  --status-closed: var(--text-soft);
+  --status-closed: var(--status-closed-on-light);
+
+  /* Blue dark enough to carry small text, and to sit under white text.
+     The brand #61B4E4 is too light for either at AA. */
+  --brand-ink: #2c6b8f;
 
   color-scheme: light dark;
 }
@@ -47,6 +51,7 @@
     /* Brighter only where the ground is dark — the card. */
     --status-open: #35d69b;
     --status-soon: #ffb347;
+    --status-closed: var(--text-soft);
   }
 }
 
@@ -79,6 +84,7 @@ body {
 }
 
 .lockup {
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.36rem;
@@ -254,8 +260,8 @@ body {
 }
 
 .pill-btn[aria-pressed='true'] {
-  background: var(--brand);
-  border-color: var(--brand);
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
   color: #fff;
   font-weight: 500;
 }
@@ -296,7 +302,7 @@ body {
   padding: 0 0.2rem;
   border: none;
   background: none;
-  color: var(--brand-deep);
+  color: var(--brand-ink);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 500;
@@ -531,7 +537,7 @@ body {
 }
 
 .info__actions .btn--primary {
-  background: var(--brand);
+  background: var(--brand-ink);
   color: #fff;
 }
 
@@ -635,7 +641,7 @@ body {
   border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--brand) 12%, var(--surface));
-  color: var(--brand-deep);
+  color: var(--brand-ink);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 500;
@@ -693,6 +699,10 @@ body {
 }
 
 .footer-link {
+  /* inline-flex so the <a> centres its text exactly like the <button>s beside it */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 36px;
   padding: 0 0.2rem;
   border: none;
@@ -706,7 +716,7 @@ body {
 }
 
 @media (hover: hover) {
-  .footer-link:hover { color: var(--brand-deep); }
+  .footer-link:hover { color: var(--brand-ink); }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -838,8 +848,8 @@ body {
 }
 
 .lang[aria-pressed='true'] {
-  background: var(--brand);
-  border-color: var(--brand);
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
   color: #fff;
   font-weight: 500;
 }
@@ -888,6 +898,20 @@ body {
 }
 
 .masthead :where(a, button):focus-visible { outline-color: #fff; }
+
+/* ---------- screen-reader only ---------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ---------- motion ---------- */
 

@@ -1,0 +1,14 @@
+{
+  "name": "cet10-hub",
+  "private": true,
+  "type": "module",
+  "description": "Tooling only. The deployed site is plain static files with no dependencies.",
+  "scripts": {
+    "test": "node tests/run.mjs",
+    "serve": "node -e \"import('node:http').then(async h=>{const{readFile}=await import('node:fs/promises');h.createServer(async(q,s)=>{try{const p='.'+new URL(q.url,'http://x').pathname.replace(/\\/$/,'/index.html');s.writeHead(200).end(await readFile(p))}catch{s.writeHead(404).end()}}).listen(8080,()=>console.log('http://127.0.0.1:8080'))})\""
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "playwright": "^1.49.0"
+  }
+}

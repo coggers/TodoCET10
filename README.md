@@ -167,6 +167,29 @@ Colours and type are taken from the centres' own sites: the shared CET10 blue `#
 Roboto, and a per-centre accent so the three cards are tellable apart at a glance —
 Bac de Roda `#D1E605`, Júpiter `#61CE70`, Maresme `#FF9900`.
 
+## Tests and CI
+
+Fifteen suites in [`tests/`](tests), run by [`tests/run.mjs`](tests/run.mjs), which serves the
+site on an ephemeral port and executes each one. They cover the opening-hours model and
+holiday calendar, the Friday booking-gap rule, sorting, filtering, favourites, the install
+and share modes, the feedback form, the privacy notice, motion, the service worker's update
+behaviour, the Content-Security-Policy, and a full axe-core accessibility pass in both
+colour schemes.
+
+```sh
+npm install
+npx playwright install chromium
+npm test
+```
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs them on every push and pull
+request. For a static site with no backend this is the observability that pays: there is no
+server to watch, and the realistic failure mode is a regression shipping unnoticed.
+
+Deliberately **not** added: analytics, real-user monitoring or error tracking. They would
+contradict the privacy position above, add weight and a third party, and there is no
+decision they would inform.
+
 ## Running it locally
 
 No build step, no dependencies — it is plain static files:

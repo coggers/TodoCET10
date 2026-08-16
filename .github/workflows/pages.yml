@@ -26,10 +26,19 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
-      # The site is plain static files — the repo root is the artifact.
+      # Assemble only the site itself. Uploading the repo root would publish
+      # the tests, the README and the workflow files alongside it.
+      # CNAME must be included or the custom domain is dropped on every deploy.
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp -r index.html manifest.webmanifest sw.js assets CNAME _site/
+          echo "--- deploying ---"
+          find _site -type f | sort
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - id: deployment
         uses: actions/deploy-pages@v4
