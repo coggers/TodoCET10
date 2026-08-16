@@ -106,10 +106,13 @@ uptime checks against a host that blocks datacenter IPs.
 
 ## Repository conventions
 
-- **Branch**: develop on `claude/gym-reservation-hub-ctv58u`, then fast-forward `main`.
-  Check the output of `git checkout` — it will abort if local edits conflict, and work has
-  been committed to the wrong branch by not reading it.
-- **Deploy**: pushing `main` triggers `.github/workflows/pages.yml`, which assembles a
+- **Branch**: `main` is protected. Develop on `claude/gym-reservation-hub-ctv58u`, push it,
+  and **open a pull request** — never push to `main` directly, and never fast-forward it
+  locally. Merging the PR is what deploys.
+- **Check the output of `git checkout`.** It aborts if local edits conflict with the target
+  branch, and work has more than once been committed to the wrong branch by not reading
+  that. Confirm `git rev-parse --abbrev-ref HEAD` before committing, not after.
+- **Deploy**: merging to `main` triggers `.github/workflows/pages.yml`, which assembles a
   `_site` directory. Anything not copied there is not published. `CNAME` must be included
   or the custom domain drops.
 - **Verify the live site after deploying**, not just the build.
