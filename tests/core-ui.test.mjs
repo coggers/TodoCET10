@@ -177,6 +177,27 @@ for (const [name, coords, expected] of [
   await c.close();
 }
 
+// ---- search engines are kept out while the photos are being replaced ----
+{
+  const c=await b.newContext(); const p=await c.newPage();
+  const r=await p.request.get(`${BASE}/robots.txt`);
+  ok(r.ok(), `robots.txt is served (${r.status()})`);
+  const body=await r.text();
+  ok(/User-agent:\s*\*/i.test(body), 'robots.txt targets all agents');
+  ok(/Disallow:\s*\/\s*$/m.test(body), 'robots.txt disallows everything');
+
+  await p.goto(BASE,{waitUntil:'domcontentloaded'});
+  const meta=await p.getAttribute('meta[name="robots"]','content');
+  ok(/noindex/i.test(meta ?? ''), `noindex meta present (${meta})`);
+
+  // The deploy copies a fixed file list into _site; a root file missing from
+  // that list silently never ships. That is the failure this guards.
+  const { readFileSync } = await import('node:fs');
+  const wf = readFileSync(new URL('../.github/workflows/pages.yml', import.meta.url), 'utf8');
+  ok(/cp -r [^\n]*\brobots\.txt\b/.test(wf), 'robots.txt is on the deploy copy list');
+  await c.close();
+}
+
 await b.close();
 console.log(fails? `\n${fails} CHECK(S) FAILED` : '\nALL CHECKS PASSED');
 process.exit(fails?1:0);

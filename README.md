@@ -223,7 +223,8 @@ directly, because the page uses ES modules and a service worker.
 
 ## Deployment
 
-Pushes to `main` deploy via [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
+`main` is protected: changes land via pull request. Merging to `main` deploys via
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 Enable it once under **Settings → Pages → Source: GitHub Actions**.
 
 ## Photos
