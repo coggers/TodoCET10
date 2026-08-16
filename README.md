@@ -103,6 +103,18 @@ Interface text is in [`assets/js/i18n.js`](assets/js/i18n.js) — Catalan, Spani
 The language follows the device, falls back to English, and can be overridden with the
 buttons in the footer (the choice is remembered).
 
+## Motion
+
+Reordering and filtering run through the [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API):
+each card carries a stable `view-transition-name`, so the browser matches it across a
+reorder and tweens it to its new position rather than snapping. No animation library.
+
+It is progressive enhancement in both directions — browsers without the API, and anyone
+with `prefers-reduced-motion: reduce`, get the plain instant update. Only user-initiated
+reorders and hides animate; the once-a-minute status refresh deliberately does not, or the
+page would twitch on its own. Durations are 180–260 ms: enough to show what moved where,
+not enough to wait for.
+
 ## Design
 
 Colours and type are taken from the centres' own sites: the shared CET10 blue `#61B4E4`,

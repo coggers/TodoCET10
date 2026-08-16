@@ -21,6 +21,17 @@
   --radius: 18px;
   --tap: 52px;
 
+  /* One source of truth for the status colours. The "-on-light" set is for
+     anything sitting on a light ground — including the quick-book pills, whose
+     accent background stays light in dark mode. */
+  --status-open-on-light: #04794f;
+  --status-soon-on-light: #9a5b00;
+  --status-closed-on-light: #5b6770;
+
+  --status-open: var(--status-open-on-light);
+  --status-soon: var(--status-soon-on-light);
+  --status-closed: var(--text-soft);
+
   color-scheme: light dark;
 }
 
@@ -32,6 +43,10 @@
     --text-soft: #9fb2bd;
     --line: #263942;
     --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 32%);
+
+    /* Brighter only where the ground is dark — the card. */
+    --status-open: #35d69b;
+    --status-soon: #ffb347;
   }
 }
 
@@ -163,19 +178,19 @@ body {
   flex: none;
 }
 
-/* Status dot only — the wording lives on the card. A light ring keeps it
-   legible on lime, green and orange alike. */
+/* Status dot only — the wording lives on the card. Same size and colours as the
+   dot inside the card's status pill; the pill's accent ground is light in both
+   themes, so it always uses the "-on-light" values. */
 .quickbook__dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   flex: none;
   border-radius: 50%;
-  box-shadow: 0 0 0 1.5px rgb(255 255 255 / 85%);
 }
 
-.quickbook__dot--open { background: #0a7d52; }
-.quickbook__dot--soon { background: #b45309; }
-.quickbook__dot--closed { background: #5b6770; }
+.quickbook__dot--open { background: var(--status-open-on-light); }
+.quickbook__dot--soon { background: var(--status-soon-on-light); }
+.quickbook__dot--closed { background: var(--status-closed-on-light); }
 
 /* Dimmed, not disabled: still fully tappable. */
 .quickbook__pill--dimmed {
@@ -426,22 +441,17 @@ body {
 
 .status__pill--open {
   background: color-mix(in srgb, #04b47c 16%, transparent);
-  color: #04794f;
+  color: var(--status-open);
 }
 
 .status__pill--soon {
   background: color-mix(in srgb, #ff9900 20%, transparent);
-  color: #9a5b00;
+  color: var(--status-soon);
 }
 
 .status__pill--closed {
   background: color-mix(in srgb, var(--text-soft) 16%, transparent);
-  color: var(--text-soft);
-}
-
-@media (prefers-color-scheme: dark) {
-  .status__pill--open { color: #35d69b; }
-  .status__pill--soon { color: #ffb347; }
+  color: var(--status-closed);
 }
 
 .status__holiday {
@@ -745,6 +755,50 @@ body {
 
 .masthead :where(a, button):focus-visible { outline-color: #fff; }
 
+/* ---------- motion ---------- */
+
+/*
+ * Reordering and filtering run through the View Transitions API, so cards tween
+ * between positions instead of snapping. Kept deliberately quick — this is a
+ * launcher, and motion should explain the change, not perform.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: 260ms;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* Everything outside the cards just cross-fades, and faster. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: ease;
+  }
+
+  .info {
+    animation: dialog-in 190ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .info::backdrop {
+    animation: fade-in 190ms ease;
+  }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; }
+
+  /* Belt and braces: the JS also skips startViewTransition entirely. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

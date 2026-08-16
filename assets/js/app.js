@@ -78,6 +78,23 @@ function externalLink(href, className, text, label) {
   return a;
 }
 
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+/**
+ * Run a DOM update inside a View Transition so cards glide between positions
+ * instead of snapping. Progressive enhancement in both directions: browsers
+ * without the API, and anyone who has asked for reduced motion, get the plain
+ * update. Only user-initiated reorders and hides go through here — the
+ * once-a-minute status refresh must never animate.
+ */
+function animate(update) {
+  if (!document.startViewTransition || reducedMotion.matches) {
+    update();
+    return;
+  }
+  document.startViewTransition(update);
+}
+
 /** Closing soon still counts as open — you can still get a session in. */
 const isOpenNow = (gym) => statusFor(gym.id).state !== 'closed';
 
@@ -203,7 +220,7 @@ function favouriteButton(gym, strings) {
     favourite = isFav ? null : gym.id;
     if (favourite) localStorage.setItem(FAV_KEY, favourite);
     else localStorage.removeItem(FAV_KEY);
-    render();
+    animate(render);
   });
 
   return button;
@@ -219,6 +236,9 @@ function renderGym(gym, strings) {
   item.className = 'gym';
   item.style.setProperty('--accent', gym.accent);
   item.style.setProperty('--ink', inkFor(gym.accent));
+  // Stable per centre, so the browser can match a card across a reorder and
+  // tween it to its new position rather than cross-fading the whole list.
+  item.style.viewTransitionName = `gym-${gym.id}`;
 
   const media = document.createElement('div');
   media.className = 'gym__media';
@@ -368,7 +388,7 @@ function render() {
     clear.addEventListener('click', () => {
       openOnly = false;
       localStorage.removeItem(OPEN_KEY);
-      render();
+      animate(render);
     });
     emptyNote.append(clear);
   }
@@ -407,7 +427,7 @@ function requestDistanceSort() {
       locating = false;
       noteKey = 'locationPrivacy';
       localStorage.setItem(SORT_KEY, sortMode);
-      render();
+      animate(render);
     },
     () => {
       // Denied, unavailable or timed out — say so and leave the order alone.
@@ -415,7 +435,7 @@ function requestDistanceSort() {
       sortMode = 'default';
       noteKey = 'locationDenied';
       localStorage.removeItem(SORT_KEY);
-      render();
+      animate(render);
     },
     // maximumAge 0: never reuse an old fix, or re-tapping could not re-sort.
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
@@ -429,7 +449,7 @@ openNowButton.addEventListener('click', () => {
   openOnly = !openOnly;
   if (openOnly) localStorage.setItem(OPEN_KEY, '1');
   else localStorage.removeItem(OPEN_KEY);
-  render();
+  animate(render);
 });
 
 // Clears the view only — the favourite is a separate preference and survives.
@@ -439,7 +459,7 @@ resetButton.addEventListener('click', () => {
   noteKey = 'locationPrivacy';
   localStorage.removeItem(SORT_KEY);
   localStorage.removeItem(OPEN_KEY);
-  render();
+  animate(render);
 });
 
 infoDialog.addEventListener('click', (event) => {
