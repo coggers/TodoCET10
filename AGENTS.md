@@ -109,6 +109,12 @@ uptime checks against a host that blocks datacenter IPs.
 - **Branch**: `main` is protected. Develop on `claude/gym-reservation-hub-ctv58u`, push it,
   and **open a pull request** — never push to `main` directly, and never fast-forward it
   locally. Merging the PR is what deploys.
+- **PRs are squash-merged**, so the feature branch's commits never become ancestors of
+  `main`. After a merge the two histories have diverged even though the trees are
+  identical, and an ordinary push will be rejected. Reset the branch onto the merged main
+  rather than trying to reconcile it:
+  `git fetch origin && git reset --hard origin/main && git push --force-with-lease origin <branch>`.
+  This is safe only because the branch's work is already in `main` — check that first.
 - **Check the output of `git checkout`.** It aborts if local edits conflict with the target
   branch, and work has more than once been committed to the wrong branch by not reading
   that. Confirm `git rev-parse --abbrev-ref HEAD` before committing, not after.
