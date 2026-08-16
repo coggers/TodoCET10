@@ -51,6 +51,13 @@ Things that have already caused wrong turns here:
 - **This sandbox cannot reach the gym portals or Web3Forms.** Cloudflare blocks the
   datacenter IP. You can verify URLs are *well-formed*, never that they *resolve*. Say
   which you did.
+- **CI has network and this sandbox does not, so "passes locally" is not "passes".** This
+  has already shipped a red build: the real hCaptcha script loaded on the runner and
+  injected its own empty `h-captcha-response` textarea, so `querySelector` returned that
+  instead of the stub a test had appended. Stub third parties **at context level, before
+  the first page exists**, and where behaviour depends on a third-party widget, fake the
+  widget faithfully rather than removing it — see `tests/captcha-widget.test.mjs`, which
+  injects an empty field and sets a cookie exactly as the real script does.
 
 ## Ways of working
 
