@@ -82,10 +82,22 @@ const isOpenNow = (gym) => statusFor(gym.id).state !== 'closed';
 /** True when the user has asked for an explicit ordering or subset. */
 const hasCustomView = () => (sortMode === 'distance' && distances) || openOnly;
 
-/** Default view: the favourite is pinned to the top, the rest keep their order. */
-const favouriteFirst = () => (favourite
-  ? [...GYMS].sort((a, b) => (b.id === favourite) - (a.id === favourite))
-  : GYMS);
+/**
+ * The resting order everywhere: alphabetical by name, collated for the active
+ * language so "Júpiter" sorts on J rather than on its accent.
+ */
+const alphabetical = () => [...GYMS].sort((a, b) => a.name.localeCompare(b.name, lang));
+
+/**
+ * Default view: the favourite pinned to the top, everything else alphabetical.
+ * Array#sort is stable, so pinning preserves the alphabetical order below it.
+ */
+const favouriteFirst = () => {
+  const list = alphabetical();
+  return favourite
+    ? list.sort((a, b) => (b.id === favourite) - (a.id === favourite))
+    : list;
+};
 
 /**
  * Gyms for the main list. Sorting or filtering is an explicit request, so it
@@ -96,7 +108,7 @@ function visibleGyms() {
   if (sortMode === 'distance' && distances) {
     list = [...GYMS].sort((a, b) => distances[a.id] - distances[b.id]);
   } else {
-    list = openOnly ? GYMS : favouriteFirst();
+    list = openOnly ? alphabetical() : favouriteFirst();
   }
   return openOnly ? list.filter(isOpenNow) : list;
 }
@@ -247,16 +259,37 @@ function renderQuickBook(strings) {
   label.className = 'quickbook__label';
   label.textContent = strings.quickBook;
 
+  const gyms = alphabetical();
   const row = document.createElement('div');
   row.className = 'quickbook__row';
-  row.style.setProperty('--cols', String(GYMS.length));
-  for (const gym of GYMS) {
+  row.style.setProperty('--cols', String(gyms.length));
+
+  for (const gym of gyms) {
     const isFav = favourite === gym.id;
-    const pill = externalLink(portalUrl(gym, 'book'), 'quickbook__pill', gym.name,
-      isFav ? `${strings.quickBookFor(gym.name)} — ${strings.favourite}`
-        : strings.quickBookFor(gym.name));
+    const status = statusFor(gym.id);
+    const excluded = openOnly && status.state === 'closed';
+
+    const label = [
+      strings.quickBookFor(gym.name),
+      isFav ? strings.favourite : null,
+      // The dot is decorative, so the state has to reach screen readers here.
+      status.state === 'closed' ? strings.statusClosed(status.nextOpen)
+        : status.state === 'soon' ? strings.statusSoon(status.minutesToClose)
+          : strings.statusOpen(status.closes),
+    ].filter(Boolean).join(' — ');
+
+    const pill = externalLink(portalUrl(gym, 'book'), 'quickbook__pill', gym.name, label);
     pill.style.setProperty('--accent', gym.accent);
     pill.style.setProperty('--ink', inkFor(gym.accent));
+
+    // Dimmed, never disabled: the filter is about the list, not about whether
+    // you may book. Booking a closed centre for tomorrow is entirely valid.
+    if (excluded) pill.classList.add('quickbook__pill--dimmed');
+
+    const dot = document.createElement('span');
+    dot.className = `quickbook__dot quickbook__dot--${status.state}`;
+    pill.prepend(dot);
+
     if (isFav) {
       pill.classList.add('quickbook__pill--fav');
       pill.insertAdjacentHTML('afterbegin', starSvg(true, 'quickbook__star'));

@@ -163,6 +163,26 @@ body {
   flex: none;
 }
 
+/* Status dot only — the wording lives on the card. A light ring keeps it
+   legible on lime, green and orange alike. */
+.quickbook__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgb(255 255 255 / 85%);
+}
+
+.quickbook__dot--open { background: #0a7d52; }
+.quickbook__dot--soon { background: #b45309; }
+.quickbook__dot--closed { background: #5b6770; }
+
+/* Dimmed, not disabled: still fully tappable. */
+.quickbook__pill--dimmed {
+  opacity: 0.45;
+  filter: saturate(0.7);
+}
+
 .quickbook__pill:active { transform: scale(0.97); }
 
 /* ---------- toolbar ---------- */
