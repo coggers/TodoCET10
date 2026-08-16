@@ -1,6 +1,7 @@
 import { GYMS, portalUrl, mapsUrl, inkFor, distanceKm } from '../data/gyms.js';
 import { statusFor, bookingGapAhead } from '../data/hours.js';
 import { LANGS, detectLang, setLang, t } from './i18n.js';
+import { ACCESS_KEY, ENDPOINT, REPO_URL, ISSUES_URL, hasForm } from '../data/feedback.js';
 
 const gymList = document.getElementById('gyms');
 const quickBook = document.getElementById('quickbook');
@@ -399,6 +400,7 @@ function render() {
     node.textContent = strings[node.dataset.i18n];
   }
   renderLangs();
+  renderFooterLinks(strings);
   refreshInstallButton();
 
   // Only worth saying on the days when the booking window lands on the weekend.
@@ -600,6 +602,111 @@ installDialog.addEventListener('click', (event) => {
 
 // Installing while the page is open should retire the button immediately.
 matchMedia('(display-mode: standalone)').addEventListener('change', refreshInstallButton);
+
+// ---------------------------------------------------------------- feedback
+
+const footerLinks = document.getElementById('footerLinks');
+const feedbackDialog = document.getElementById('feedbackDialog');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackFallback = document.getElementById('feedbackFallback');
+const feedbackDone = document.getElementById('feedbackDone');
+const feedbackError = document.getElementById('feedbackError');
+const feedbackMessage = document.getElementById('feedbackMessage');
+const feedbackContact = document.getElementById('feedbackContact');
+
+function renderFooterLinks(strings) {
+  footerLinks.replaceChildren();
+
+  const feedback = document.createElement('button');
+  feedback.type = 'button';
+  feedback.className = 'footer-link';
+  feedback.textContent = strings.feedback;
+  feedback.addEventListener('click', () => openFeedback(strings));
+
+  const repo = externalLink(REPO_URL, 'footer-link', strings.sourceCode);
+
+  footerLinks.append(feedback, repo);
+}
+
+function openFeedback(strings) {
+  document.getElementById('feedbackTitle').textContent = strings.feedbackTitle;
+
+  // No key configured yet: offer GitHub rather than a form that would fail.
+  const configured = hasForm();
+  feedbackForm.hidden = !configured;
+  feedbackFallback.hidden = configured;
+  feedbackDone.hidden = true;
+  feedbackError.hidden = true;
+
+  if (configured) {
+    document.getElementById('feedbackMessageLabel').textContent = strings.feedbackMessage;
+    document.getElementById('feedbackContactLabel').textContent = strings.feedbackContact;
+    document.getElementById('feedbackPrivacy').textContent = strings.feedbackPrivacy;
+    document.getElementById('feedbackSend').textContent = strings.feedbackSend;
+    document.getElementById('feedbackCancel').textContent = strings.feedbackCancel;
+  } else {
+    document.getElementById('feedbackFallbackText').textContent = strings.feedbackFallback;
+    const issues = document.getElementById('feedbackIssues');
+    issues.href = ISSUES_URL;
+    issues.textContent = strings.feedbackIssues;
+    document.getElementById('feedbackFallbackClose').textContent = strings.feedbackCancel;
+  }
+
+  feedbackDialog.showModal();
+}
+
+async function submitFeedback(event) {
+  event.preventDefault();
+  const strings = t(lang);
+  const message = feedbackMessage.value.trim();
+
+  if (!message) {
+    feedbackError.textContent = strings.feedbackEmpty;
+    feedbackError.hidden = false;
+    feedbackMessage.focus();
+    return;
+  }
+
+  const send = document.getElementById('feedbackSend');
+  send.disabled = true;
+  feedbackError.hidden = true;
+
+  try {
+    const response = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        access_key: ACCESS_KEY,
+        subject: 'CET10 Hub feedback',
+        from_name: 'CET10 Hub',
+        // Only what the user typed, plus the language so replies match.
+        message,
+        email: feedbackContact.value.trim() || undefined,
+        language: lang,
+      }),
+    });
+    if (!response.ok) throw new Error(String(response.status));
+
+    feedbackForm.hidden = true;
+    feedbackDone.textContent = strings.feedbackDone;
+    feedbackDone.hidden = false;
+    feedbackMessage.value = '';
+    feedbackContact.value = '';
+    setTimeout(() => feedbackDialog.close(), 1600);
+  } catch {
+    feedbackError.textContent = strings.feedbackFailed;
+    feedbackError.hidden = false;
+  } finally {
+    send.disabled = false;
+  }
+}
+
+feedbackForm.addEventListener('submit', submitFeedback);
+document.getElementById('feedbackCancel').addEventListener('click', () => feedbackDialog.close());
+document.getElementById('feedbackFallbackClose').addEventListener('click', () => feedbackDialog.close());
+feedbackDialog.addEventListener('click', (event) => {
+  if (event.target === feedbackDialog) feedbackDialog.close();
+});
 
 // ---------------------------------------------------------------- online state
 

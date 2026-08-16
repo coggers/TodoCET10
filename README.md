@@ -105,6 +105,24 @@ Interface text is in [`assets/js/i18n.js`](assets/js/i18n.js) — Catalan, Spani
 The language follows the device, falls back to English, and can be overridden with the
 buttons in the footer (the choice is remembered).
 
+## Feedback
+
+The footer has a **Send feedback** link opening an in-app form, and a **Source code** link
+to this repository.
+
+The form posts to [Web3Forms](https://web3forms.com), which is free and needs no backend of
+our own. Turning it on is a two-line job — get an access key emailed to you, paste it into
+[`assets/data/feedback.js`](assets/data/feedback.js), redeploy. Until then the dialog offers
+GitHub Issues instead, so there is never a form that silently fails.
+
+Only the typed message, an optional reply address and the UI language are sent. No location,
+no usage data, nothing about which centres you use — there is a test asserting the request
+body contains nothing else.
+
+Note that Hover charges $5/year for email forwarding. If you would rather have plain email,
+ImprovMX and Forward Email both forward a custom domain for free using MX records added at
+Hover, with no need to move the domain or change nameservers.
+
 ## Motion
 
 Reordering and filtering run through the [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API):

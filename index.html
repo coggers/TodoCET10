@@ -72,10 +72,39 @@
 <footer class="wrap site-footer">
   <button type="button" class="install" id="install"></button>
   <p class="site-footer__note" data-i18n="footer">Links to the official CET10 portals. Not an official app.</p>
+  <div class="footer-links" id="footerLinks"></div>
   <div class="langs" id="langs" role="group" aria-label="Language"></div>
 </footer>
 
 <p class="offline-banner" id="offline" role="status" hidden data-i18n="offline"></p>
+
+<dialog class="info" id="feedbackDialog">
+  <h2 class="info__title" id="feedbackTitle"></h2>
+  <form id="feedbackForm" novalidate>
+    <label class="field">
+      <span class="field__label" id="feedbackMessageLabel"></span>
+      <textarea class="field__input" id="feedbackMessage" rows="5" required maxlength="2000"></textarea>
+    </label>
+    <label class="field">
+      <span class="field__label" id="feedbackContactLabel"></span>
+      <input class="field__input" id="feedbackContact" type="email" autocomplete="email" maxlength="200">
+    </label>
+    <p class="field__note" id="feedbackPrivacy"></p>
+    <p class="field__error" id="feedbackError" role="alert" hidden></p>
+    <div class="info__actions">
+      <button type="submit" class="btn btn--primary" id="feedbackSend"></button>
+      <button type="button" class="btn btn--ghost" id="feedbackCancel"></button>
+    </div>
+  </form>
+  <div id="feedbackFallback" hidden>
+    <p class="info__body-text" id="feedbackFallbackText"></p>
+    <div class="info__actions">
+      <a class="btn btn--primary" id="feedbackIssues" target="_blank" rel="noopener noreferrer"></a>
+      <button type="button" class="btn btn--ghost" id="feedbackFallbackClose"></button>
+    </div>
+  </div>
+  <p class="feedback__done" id="feedbackDone" hidden></p>
+</dialog>
 
 <dialog class="info" id="installDialog">
   <h2 class="info__title" id="installTitle"></h2>
