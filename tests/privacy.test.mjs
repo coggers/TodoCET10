@@ -32,6 +32,7 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
     ['deleted','covers erasure'],
     ['no analytics','states there is no analytics'],
     ['consent banner','explains why there is no banner'],
+    ['cookie','discloses the captcha cookie'],
   ]) ok(text.includes(needle), `${label} ("${needle}")`);
 
   await p.locator('#privacyClose').click(); await p.waitForTimeout(300);
@@ -65,10 +66,20 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
   await p.locator('#openNow').click(); await p.waitForTimeout(300);
   await p.locator('#reset').click(); await p.waitForTimeout(300);
   await p.locator('.status__info').first().click(); await p.waitForTimeout(300);
+  // hCaptcha sets a cookie once loaded. That is disclosed, and only happens on a
+  // form the user chose to open — but assert it comes from a named host, so an
+  // undisclosed third party dropping a cookie would fail the build.
+  const cookiesAfter = await c.cookies();
+  ok(cookiesAfter.every(k=>allowed.test(k.domain.replace(/^\./,''))),
+    `any cookie set belongs to a disclosed host (${cookiesAfter.map(k=>k.domain).join(', ')||'none'})`);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   await p.getByRole('button',{name:'Privacy'}).click(); await p.waitForTimeout(300);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   ok(thirdParty.length===0, `no third-party requests while simply using the app (${[...new Set(thirdParty)].join(', ')||'none'})`);
+  // The "no cookies" claim is about using the app, so measure it here — before
+  // the user opts into the spam check, which sets one of its own.
+  const cookiesBefore = await c.cookies();
+  ok(cookiesBefore.length===0, `no cookies from using the app (${cookiesBefore.length})`);
 
   // Opening the feedback form is an opt-in, and may reach only the spam-check
   // and form hosts the privacy notice names.
@@ -78,8 +89,6 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
   ok(hosts.length>0, `opening feedback does load the captcha (${hosts.join(', ')||'none'})`);
   ok(hosts.every(h=>allowed.test(h)), `and only disclosed hosts (${hosts.join(', ')})`);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-  const cookies=await c.cookies();
-  ok(cookies.length===0, `no cookies set (${cookies.length})`);
   const stored=await p.evaluate(()=>Object.keys(localStorage));
   ok(stored.every(k=>k.startsWith('cet10hub.')), `only first-party preference keys (${stored.join(', ')})`);
   ok(stored.length<=4, `at most four preference keys (${stored.length})`);

@@ -4,9 +4,20 @@ let fails=0; const ok=(c,m)=>{console.log((c?'  PASS  ':'  FAIL  ')+m); if(!c)fa
 const b=await chromium.launch();
 const base={viewport:{width:390,height:844},locale:'en-GB'};
 
+/**
+ * CI runners have real internet and this sandbox does not, so the captcha
+ * script would load in one and not the other. Stub it everywhere: this suite
+ * is about our form's behaviour, not hCaptcha's.
+ */
+async function stubCaptcha(ctx) {
+  await ctx.route('https://web3forms.com/client/script.js',
+    r => r.fulfill({ status:200, contentType:'text/javascript', body:'' }));
+  await ctx.route(/hcaptcha\.com/, r => r.abort());
+}
+
 // ---- 1. footer links ----
 {
-  const c=await b.newContext(base); const p=await c.newPage();
+  const c=await b.newContext(base); await stubCaptcha(c); const p=await c.newPage();
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
   const links=await p.$$eval('.footer-link',e=>e.map(x=>({t:x.textContent.trim(),href:x.getAttribute('href'),tag:x.tagName})));
   ok(links.length===3, `three footer links (${links.map(l=>l.t).join(', ')})`);
@@ -21,7 +32,7 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
 
 // ---- 2. no key configured -> GitHub fallback, never a dead form ----
 {
-  const c=await b.newContext(base);
+  const c=await b.newContext(base); await stubCaptcha(c);
   // Blank the key to exercise the fallback, whatever is actually shipped.
   await c.route('**/assets/data/feedback.js', async route => {
     const body=(await (await fetch(`${BASE}/assets/data/feedback.js`)).text())
@@ -51,7 +62,7 @@ const withKey = async (ctx) => {
   });
 };
 {
-  const c=await b.newContext(base); await withKey(c);
+  const c=await b.newContext(base); await stubCaptcha(c); await withKey(c);
   let posted=null;
   let postHeaders=null;
   await c.route('https://api.web3forms.com/submit', route=>{
@@ -66,7 +77,6 @@ const withKey = async (ctx) => {
   ok(/Only what you type/i.test(await p.locator('#feedbackPrivacy').textContent()), 'states plainly what is sent');
 
   // block the captcha script (no network in tests) and stub a solved token
-  await p.route('https://web3forms.com/client/script.js', r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
   const solve = () => p.evaluate(() => {
     let ta = document.querySelector('textarea[name="h-captcha-response"]');
     if (!ta) { ta = document.createElement('textarea'); ta.name='h-captcha-response'; ta.hidden=true;
@@ -111,15 +121,21 @@ const withKey = async (ctx) => {
 
 // ---- 4. network failure is surfaced, not swallowed ----
 {
-  const c=await b.newContext(base); await withKey(c);
+  const c=await b.newContext(base); await stubCaptcha(c); await withKey(c);
   await c.route('https://api.web3forms.com/submit', route=>route.abort());
   const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
   await p.locator('.footer-link').first().click(); await p.waitForTimeout(300);
-  await p.route('https://web3forms.com/client/script.js', r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
   await p.locator('#feedbackMessage').fill('test');
-  await p.evaluate(() => { const ta=document.createElement('textarea'); ta.name='h-captcha-response';
-    ta.hidden=true; ta.value='stub'; document.getElementById('feedbackForm').append(ta); });
+  // Set the value on whichever textarea exists rather than appending a second:
+  // where the network is reachable the real widget injects its own (empty) one,
+  // and querySelector would return that instead of ours.
+  await p.evaluate(() => {
+    let ta = document.querySelector('textarea[name="h-captcha-response"]');
+    if (!ta) { ta = document.createElement('textarea'); ta.name='h-captcha-response';
+               ta.hidden=true; document.getElementById('feedbackForm').append(ta); }
+    ta.value = 'stub';
+  });
   await p.locator('#feedbackSend').click(); await p.waitForTimeout(700);
   ok(await p.locator('#feedbackError').isVisible(), 'failure shows an error');
   ok(/Could not send/i.test(await p.locator('#feedbackError').textContent()), 'error explains what to do');
@@ -131,7 +147,7 @@ const withKey = async (ctx) => {
 
 // ---- 5. translations ----
 for (const [code, needle] of [['ca','Codi font'],['es','Código fuente'],['en','Source code']]) {
-  const c=await b.newContext(base); const p=await c.newPage();
+  const c=await b.newContext(base); await stubCaptcha(c); const p=await c.newPage();
   await p.goto(BASE,{waitUntil:'networkidle'});
   await p.evaluate(l=>localStorage.setItem('cet10hub.lang',l),code);
   await p.reload({waitUntil:'networkidle'}); await p.waitForTimeout(400);
@@ -145,7 +161,7 @@ for (const [code, needle] of [['ca','Codi font'],['es','Código fuente'],['en','
   const src = await (await fetch(`${BASE}/assets/data/feedback.js`)).text();
   const key = src.match(/export const ACCESS_KEY = '([^']*)';/)?.[1] ?? '';
   ok(/^[0-9a-f-]{36}$/.test(key), `a real access key is configured (${key ? key.slice(0,8)+'…' : 'EMPTY'})`);
-  const c=await b.newContext(base); const p=await c.newPage();
+  const c=await b.newContext(base); await stubCaptcha(c); const p=await c.newPage();
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(400);
   await p.locator('.footer-link').first().click(); await p.waitForTimeout(400);
   ok(await p.locator('#feedbackForm').isVisible(), 'the shipped app shows the real form, not the fallback');
