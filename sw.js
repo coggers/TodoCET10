@@ -48,8 +48,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
+      // Only ever delete our own caches. The bare `key !== CACHE` this replaced
+      // would wipe every cache on the origin, which matters if anything else is
+      // ever served from the same host.
       .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)),
+        keys.filter((key) => key.startsWith('cet10hub-') && key !== CACHE)
+          .map((key) => caches.delete(key)),
       ))
       .then(() => self.clients.claim()),
   );

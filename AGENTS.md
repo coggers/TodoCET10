@@ -84,7 +84,7 @@ Accessibility work is driven by axe-core output, not intuition.
 
 ### Tests are the deliverable, not the receipt
 
-Sixteen suites live in `tests/`, run by `tests/run.mjs`, wired to CI. They exist because
+Seventeen suites live in `tests/`, run by `tests/run.mjs`, wired to CI. They exist because
 this project has been iterated on hard and the regressions are real: the timezone crash,
 the stale service worker, the referrer bug, the contrast failures.
 
@@ -150,7 +150,7 @@ assets/data/gyms.js     the three centres: URLs, coords, accents
 assets/data/hours.js    timetable, holiday calendar, status logic (pure, unit-tested)
 assets/data/feedback.js Web3Forms key and repo URLs
 sw.js                   offline shell — bump CACHE when the shell changes
-tests/                  16 suites + runner
+tests/                  17 suites + runner
 ```
 
 State lives in module-scope variables in `app.js` and persists to `localStorage` under the

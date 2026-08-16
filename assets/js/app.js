@@ -282,6 +282,9 @@ function renderGym(gym, strings, index) {
 
   const more = document.createElement('div');
   more.className = 'gym__more';
+  // aria-label is ignored on a generic div by much assistive tech; the role is
+  // what makes it a named container rather than anonymous markup.
+  more.setAttribute('role', 'group');
   more.setAttribute('aria-label', strings.moreFor(gym.name));
   for (const extra of EXTRAS) {
     const chip = externalLink(extra.href(gym), 'chip', strings[extra.key]);
