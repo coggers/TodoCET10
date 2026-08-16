@@ -12,7 +12,7 @@
  * Until a key is set the form hides itself and the feedback dialog offers
  * GitHub Issues instead, so there is never a form that silently fails.
  */
-export const ACCESS_KEY = '';
+export const ACCESS_KEY = 'fe94d824-281c-42da-8a16-58a62502f396';
 
 export const ENDPOINT = 'https://api.web3forms.com/submit';
 

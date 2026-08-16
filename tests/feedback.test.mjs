@@ -21,7 +21,14 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
 
 // ---- 2. no key configured -> GitHub fallback, never a dead form ----
 {
-  const c=await b.newContext(base); const p=await c.newPage();
+  const c=await b.newContext(base);
+  // Blank the key to exercise the fallback, whatever is actually shipped.
+  await c.route('**/assets/data/feedback.js', async route => {
+    const body=(await (await fetch(`${BASE}/assets/data/feedback.js`)).text())
+      .replace(/export const ACCESS_KEY = '[^']*';/, "export const ACCESS_KEY = '';");
+    route.fulfill({status:200, contentType:'text/javascript', body});
+  });
+  const p=await c.newPage();
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(400);
   await p.locator('.footer-link').first().click(); await p.waitForTimeout(400);
   ok(await p.locator('#feedbackDialog').evaluate(d=>d.open), 'feedback dialog opens');
@@ -39,15 +46,17 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
 const withKey = async (ctx) => {
   await ctx.route('**/assets/data/feedback.js', async route => {
     const body = (await (await fetch(`${BASE}/assets/data/feedback.js`)).text())
-      .replace("export const ACCESS_KEY = '';", "export const ACCESS_KEY = 'test-key-1234';");
+      .replace(/export const ACCESS_KEY = '[^']*';/, "export const ACCESS_KEY = 'test-key-1234';");
     route.fulfill({status:200, contentType:'text/javascript', body});
   });
 };
 {
   const c=await b.newContext(base); await withKey(c);
   let posted=null;
+  let postHeaders=null;
   await c.route('https://api.web3forms.com/submit', route=>{
     posted=JSON.parse(route.request().postData());
+    postHeaders=route.request().headers();
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true})});
   });
   const p=await c.newPage(); await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
@@ -72,6 +81,12 @@ const withKey = async (ctx) => {
   const keys=Object.keys(posted).sort();
   ok(!keys.some(k=>/location|coords|lat|lon|favourite|userAgent/i.test(k)),
     `no personal or usage data attached (${keys.join(', ')})`);
+  // The page-wide no-referrer policy also nulls Origin, which Web3Forms' free
+  // tier uses to reject non-client-side posts. This call must opt back in.
+  ok(!!(postHeaders?.referer || postHeaders?.origin),
+    `submission identifies its origin (referer=${postHeaders?.referer ?? 'none'})`);
+  const refPath = postHeaders?.referer ? new URL(postHeaders.referer).pathname : '/';
+  ok(refPath === '/', `referer is origin-only, no path leaked (path=${refPath})`);
   ok(await p.locator('#feedbackDone').isVisible(), 'shows a thank-you');
   await p.waitForTimeout(1800);
   ok(!(await p.locator('#feedbackDialog').evaluate(d=>d.open)), 'closes itself afterwards');
@@ -103,6 +118,18 @@ for (const [code, needle] of [['ca','Codi font'],['es','Código fuente'],['en','
   await p.reload({waitUntil:'networkidle'}); await p.waitForTimeout(400);
   const txt=await p.$$eval('.footer-link',e=>e.map(x=>x.textContent.trim()).join(' | '));
   ok(txt.includes(needle), `${code}: "${txt}"`);
+  await c.close();
+}
+
+// ---- 6. the shipped configuration is live, not a placeholder ----
+{
+  const src = await (await fetch(`${BASE}/assets/data/feedback.js`)).text();
+  const key = src.match(/export const ACCESS_KEY = '([^']*)';/)?.[1] ?? '';
+  ok(/^[0-9a-f-]{36}$/.test(key), `a real access key is configured (${key ? key.slice(0,8)+'…' : 'EMPTY'})`);
+  const c=await b.newContext(base); const p=await c.newPage();
+  await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(400);
+  await p.locator('.footer-link').first().click(); await p.waitForTimeout(400);
+  ok(await p.locator('#feedbackForm').isVisible(), 'the shipped app shows the real form, not the fallback');
   await c.close();
 }
 

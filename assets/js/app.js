@@ -741,6 +741,11 @@ async function submitFeedback(event) {
   try {
     const response = await fetch(ENDPOINT, {
       method: 'POST',
+      // The page sets no-referrer globally, which also nulls the Origin header.
+      // Web3Forms' free tier only accepts client-side submissions and uses those
+      // headers to tell them apart, so this one call opts back in — origin only,
+      // never the path.
+      referrerPolicy: 'strict-origin',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
         access_key: ACCESS_KEY,
