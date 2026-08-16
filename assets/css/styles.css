@@ -418,7 +418,9 @@ body {
 .gym__media {
   position: relative;
   aspect-ratio: 16 / 8.2;
-  background: var(--line);
+  /* Tinted with the centre's own accent so the card looks intentional before
+     the photo arrives, rather than a broken grey rectangle. */
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
 }
 
 .gym__media img {
@@ -426,6 +428,13 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+}
+
+.gym__media img.is-loaded { opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .gym__media img { transition: opacity 0.35s ease; }
 }
 
 .gym__media::after {
@@ -802,6 +811,32 @@ body {
   .footer-link:hover { color: var(--brand); }
 }
 
+/* ---------- non-modal sheet ---------- */
+
+/*
+ * The feedback dialog is opened with show(), not showModal(), so the hCaptcha
+ * challenge can paint above it — see openFeedbackSheet(). A non-modal dialog is
+ * positioned in normal flow and gets no ::backdrop, so both are supplied here.
+ */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(8 22 30 / 55%);
+}
+
+.sheet-backdrop[hidden] { display: none; }
+
+.info--sheet[open] {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  margin: auto;
+  max-height: min(88vh, 44rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 /* ---------- share dialog ---------- */
 
 .share__lead {
@@ -1014,6 +1049,30 @@ body {
 }
 
 .masthead :where(a, button):focus-visible { outline-color: var(--masthead-ink); }
+
+/* ---------- first paint ---------- */
+
+/*
+ * Everything below the masthead is rendered by JS. Without this the page paints
+ * in visible stages: empty bordered controls, then text, then photos. The space
+ * is already reserved (see .gyms[data-reserving]), so hiding the *contents*
+ * costs no layout shift and lets it all arrive together.
+ *
+ * The masthead is static markup and is deliberately excluded, so something is
+ * on screen immediately.
+ */
+[data-loading] .quickbook,
+[data-loading] .toolbar,
+[data-loading] #gyms,
+[data-loading] .site-footer {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .quickbook, .toolbar, #gyms, .site-footer {
+    transition: opacity 0.28s ease;
+  }
+}
 
 /* ---------- screen-reader only ---------- */
 

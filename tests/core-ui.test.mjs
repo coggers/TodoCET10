@@ -198,6 +198,52 @@ for (const [name, coords, expected] of [
   await c.close();
 }
 
+// ---- the page reveals itself: the hide-until-rendered must always be undone ----
+{
+  const c=await b.newContext({viewport:{width:390,height:844}}); const p=await c.newPage();
+  await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(600);
+  ok(!(await p.evaluate(()=>document.documentElement.hasAttribute('data-loading'))),
+    'data-loading is removed once the list has rendered');
+  // The severe failure this guards: content hidden for first paint that never
+  // comes back, leaving a page with nothing but a header on it.
+  const shown=await p.$$eval('.quickbook, .toolbar, #gyms, .site-footer',
+    els=>els.map(el=>+getComputedStyle(el).opacity));
+  ok(shown.length===4 && shown.every(o=>o===1), `all four JS-rendered regions are visible (${shown.join(', ')})`);
+  ok(await p.$$eval('.gym__media img', els=>els.every(i=>i.classList.contains('is-loaded'))),
+    'every photo is marked loaded, so none is left faded out');
+
+  // Without JS there is no render to wait for, so nothing may stay hidden.
+  const noJs=await b.newContext({viewport:{width:390,height:844}, javaScriptEnabled:false});
+  const q=await noJs.newPage();
+  await q.goto(BASE,{waitUntil:'domcontentloaded'}); await q.waitForTimeout(300);
+  const footer=await q.$eval('.site-footer', el=>+getComputedStyle(el).opacity);
+  ok(footer===1, `without JS the noscript guard reveals the page (footer opacity ${footer})`);
+  await noJs.close();
+  await c.close();
+}
+
+// ---- the reserved card height still matches the real one ----
+{
+  // `.gyms[data-reserving]` hard-codes the card geometry in pixels, so any
+  // change to card layout silently drifts from it. Measure rather than trust:
+  // the observer has to exist before navigation to catch the first shifts.
+  for (const width of [390, 412]) {
+    const c=await b.newContext({viewport:{width,height:844}}); const p=await c.newPage();
+    await p.addInitScript(()=>{
+      window.__cls=0;
+      new PerformanceObserver(list=>{
+        for (const e of list.getEntries()) if (!e.hadRecentInput) window.__cls+=e.value;
+      }).observe({type:'layout-shift', buffered:true});
+    });
+    await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(1200);
+    const cls=await p.evaluate(()=>window.__cls);
+    // Google's "good" threshold is 0.1; this page measures ~0.00 and there is
+    // no reason for it to regress, so hold it well inside that.
+    ok(cls<0.02, `${width}px: cumulative layout shift ${cls.toFixed(4)} (< 0.02)`);
+    await c.close();
+  }
+}
+
 await b.close();
 console.log(fails? `\n${fails} CHECK(S) FAILED` : '\nALL CHECKS PASSED');
 process.exit(fails?1:0);

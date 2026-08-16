@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-loading>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -26,6 +26,8 @@
 
 <link rel="preload" href="assets/fonts/roboto-latin-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/styles.css">
+<noscript><style>[data-loading] .quickbook,[data-loading] .toolbar,[data-loading] #gyms,
+[data-loading] .site-footer{opacity:1!important;visibility:visible!important}</style></noscript>
 </head>
 <body>
 
@@ -110,7 +112,8 @@
   </div>
 </dialog>
 
-<dialog class="info" id="feedbackDialog">
+<div class="sheet-backdrop" id="feedbackBackdrop" hidden></div>
+<dialog class="info info--sheet" id="feedbackDialog">
   <h2 class="info__title" id="feedbackTitle"></h2>
   <form id="feedbackForm" novalidate>
     <label class="field">

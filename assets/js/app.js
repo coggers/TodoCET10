@@ -264,11 +264,17 @@ function renderGym(gym, strings, index) {
   // The first card's photo is the LCP element; lazy-loading it delays the
   // largest paint for no benefit, since it is above the fold on every phone.
   const eager = index === 0;
+  media.style.setProperty('--accent', gym.accent);
   media.innerHTML = `
     <img src="${gym.photo}" alt="" width="1000" height="563"
          loading="${eager ? 'eager' : 'lazy'}"
          fetchpriority="${eager ? 'high' : 'auto'}" decoding="async">
     <h2 class="gym__name"><span class="gym__cem">CEM</span>${gym.name}</h2>`;
+  const photo = media.querySelector('img');
+  // Already cached on re-render: mark it synchronously so no fade replays.
+  if (photo.complete) photo.classList.add('is-loaded');
+  else photo.addEventListener('load', () => photo.classList.add('is-loaded'), { once: true });
+
   media.append(favouriteButton(gym, strings));
 
   const actions = document.createElement('div');
@@ -428,8 +434,11 @@ function render() {
   refreshInstallButton();
 
   // First paint is done; release the reserved height so a filtered list can
-  // shrink normally.
+  // shrink normally, and reveal the content in one piece rather than in stages.
   gymList.removeAttribute('data-reserving');
+  if (document.documentElement.hasAttribute('data-loading')) {
+    requestAnimationFrame(() => document.documentElement.removeAttribute('data-loading'));
+  }
 
   // Only worth saying on the days when the booking window lands on the weekend.
   bookingNotice.hidden = !bookingGapAhead();
@@ -770,7 +779,63 @@ function openFeedback(strings) {
     document.getElementById('feedbackFallbackClose').textContent = strings.feedbackCancel;
   }
 
-  feedbackDialog.showModal();
+  openFeedbackSheet();
+}
+
+const feedbackBackdrop = document.getElementById('feedbackBackdrop');
+let feedbackReturnFocus = null;
+
+/**
+ * Deliberately `show()`, not `showModal()`.
+ *
+ * A modal dialog is promoted to the browser's top layer, which nothing outside
+ * it can paint above — z-index cannot compete with the top layer at all. The
+ * hCaptcha challenge is an iframe appended to <body> that positions itself with
+ * a very high z-index, so inside a modal dialog it renders *underneath* the
+ * dialog and its backdrop, and the challenge is impossible to complete.
+ *
+ * Showing it non-modally keeps it in the normal stacking context, where the
+ * challenge can appear over it. The cost is that the backdrop, Escape and
+ * shutting the page behind away from tab order and screen readers — all free
+ * with showModal() — are ours to implement.
+ */
+function openFeedbackSheet() {
+  feedbackReturnFocus = document.activeElement;
+  feedbackBackdrop.hidden = false;
+  setPageInert(true);
+  feedbackDialog.show();
+  document.addEventListener('keydown', onFeedbackKey);
+  (hasForm() ? feedbackMessage : document.getElementById('feedbackIssues'))?.focus();
+}
+
+function closeFeedback() {
+  feedbackDialog.close();
+  feedbackBackdrop.hidden = true;
+  setPageInert(false);
+  document.removeEventListener('keydown', onFeedbackKey);
+  feedbackReturnFocus?.focus?.();
+}
+
+/**
+ * The page behind the sheet, named by landmark rather than by "everything that
+ * is not the dialog". That distinction matters: hCaptcha appends its challenge
+ * straight to <body>, so a blanket rule would make the challenge itself inert
+ * and lock keyboard users out of the very thing this sheet exists to reach.
+ *
+ * A Tab trap would have the same failure, and worse — it would fight hCaptcha
+ * for focus. Marking the background inert leaves the challenge reachable while
+ * still keeping the page behind out of tab order and out of the accessibility
+ * tree, which is what showModal() was giving us.
+ */
+const setPageInert = (on) => {
+  document.querySelectorAll('body > header, body > nav, body > main, body > footer, body > div.wrap')
+    .forEach((el) => { el.inert = on; });
+};
+
+function onFeedbackKey(event) {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  closeFeedback();
 }
 
 async function submitFeedback(event) {
@@ -824,7 +889,7 @@ async function submitFeedback(event) {
     feedbackMessage.value = '';
     feedbackContact.value = '';
     window.hcaptcha?.reset();
-    setTimeout(() => feedbackDialog.close(), 1600);
+    setTimeout(closeFeedback, 1600);
   } catch {
     feedbackError.textContent = strings.feedbackFailed;
     feedbackError.hidden = false;
@@ -836,11 +901,10 @@ async function submitFeedback(event) {
 }
 
 feedbackForm.addEventListener('submit', submitFeedback);
-document.getElementById('feedbackCancel').addEventListener('click', () => feedbackDialog.close());
-document.getElementById('feedbackFallbackClose').addEventListener('click', () => feedbackDialog.close());
-feedbackDialog.addEventListener('click', (event) => {
-  if (event.target === feedbackDialog) feedbackDialog.close();
-});
+document.getElementById('feedbackCancel').addEventListener('click', closeFeedback);
+document.getElementById('feedbackFallbackClose').addEventListener('click', closeFeedback);
+// No ::backdrop on a non-modal dialog, so the real element takes the click.
+feedbackBackdrop.addEventListener('click', closeFeedback);
 
 // ---------------------------------------------------------------- online state
 
