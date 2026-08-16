@@ -76,7 +76,12 @@ const STRINGS = {
     installInApp: 'Estàs dins del navegador d’una altra app. Obre aquesta pàgina a Safari o Chrome per poder afegir-la.',
 
     share: 'Compartir',
-    shareCopied: 'Enllaç copiat',
+    shareCopied: 'Enllaç copiat!',
+    shareTitle: 'Comparteix el CET10 Hub',
+    shareLead: 'Que l’escanegin amb la càmera del mòbil. No cal intercanviar cap contacte.',
+    shareQrAlt: 'Codi QR que obre todocet10.space',
+    shareSheet: 'Compartir d’una altra manera',
+    shareCopy: 'Copiar l’enllaç',
     listUpdated: (shown, total, how) => {
       const parts = [shown === total ? `${total} centres` : `${shown} de ${total} centres`];
       if (how.openOnly) parts.push('només oberts ara');
@@ -187,7 +192,12 @@ const STRINGS = {
     installInApp: 'Estás dentro del navegador de otra app. Abre esta página en Safari o Chrome para poder añadirla.',
 
     share: 'Compartir',
-    shareCopied: 'Enlace copiado',
+    shareCopied: '¡Enlace copiado!',
+    shareTitle: 'Comparte CET10 Hub',
+    shareLead: 'Que lo escaneen con la cámara del móvil. No hace falta intercambiar ningún contacto.',
+    shareQrAlt: 'Código QR que abre todocet10.space',
+    shareSheet: 'Compartir de otra forma',
+    shareCopy: 'Copiar el enlace',
     listUpdated: (shown, total, how) => {
       const parts = [shown === total ? `${total} centros` : `${shown} de ${total} centros`];
       if (how.openOnly) parts.push('solo abiertos ahora');
@@ -298,7 +308,12 @@ const STRINGS = {
     installInApp: 'You are inside another app’s browser. Open this page in Safari or Chrome to add it.',
 
     share: 'Share',
-    shareCopied: 'Link copied',
+    shareCopied: 'Link copied!',
+    shareTitle: 'Share CET10 Hub',
+    shareLead: 'Let them scan this with their phone camera. No need to swap contact details.',
+    shareQrAlt: 'QR code opening todocet10.space',
+    shareSheet: 'Share another way',
+    shareCopy: 'Copy the link',
     listUpdated: (shown, total, how) => {
       const parts = [shown === total ? `${total} centres` : `${shown} of ${total} centres`];
       if (how.openOnly) parts.push('open now only');

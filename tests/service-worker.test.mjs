@@ -15,7 +15,7 @@ try {
   await p.waitForFunction(()=>!!navigator.serviceWorker.controller, {timeout:10000});
   ok(true, 'service worker active and controlling the page');
   const v = await p.evaluate(async()=>(await caches.keys()));
-  ok(v.includes('cet10hub-v3'), `cache is ${v.join(',')}`);
+  ok(v.includes('cet10hub-v4'), `cache is ${v.join(',')}`);
 
   // 2. offline still renders (cache fallback)
   await ctx.setOffline(true);

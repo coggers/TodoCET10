@@ -12,7 +12,7 @@ const installed = () => ({ viewport:{width:390,height:844}, userAgent:IOS, local
   const p=await c.newPage(); await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
   ok(await p.locator('#install').isVisible(), 'not installed: button visible');
   ok(await p.locator('#install').getAttribute('data-mode')==='install', 'mode=install');
-  ok((await p.locator('#install').textContent()).includes('Add to Home Screen'), 'labelled for install');
+  ok((await p.locator('#install').getAttribute('aria-label')).includes('Add to Home Screen'), 'labelled for install');
   await c.close();
 }
 
@@ -27,17 +27,30 @@ const installed = () => ({ viewport:{width:390,height:844}, userAgent:IOS, local
   const p=await c.newPage(); await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
   ok(await p.locator('#install').isVisible(), 'installed: button is visible (the reported problem)');
   ok(await p.locator('#install').getAttribute('data-mode')==='share', 'installed: mode=share');
-  const label=(await p.locator('#install').textContent()).trim();
+  const label=(await p.locator('#install').getAttribute('aria-label')).trim();
   ok(label.includes('Share'), `installed: labelled "${label}"`);
 
+  // The header button now opens a dialog; the sheet is one tap further in.
   await p.locator('#install').click(); await p.waitForTimeout(400);
+  ok(await p.locator('#shareDialog').evaluate(d=>d.open), 'tapping opens the share dialog');
+  ok(await p.locator('#shareQr').isVisible(), 'the dialog shows a QR code');
+  const qrSrc=await p.locator('#shareQr').getAttribute('src');
+  ok(qrSrc==='assets/img/qr.svg', `QR is a local asset, CSP-safe (${qrSrc})`);
+  const qrBox=await p.locator('#shareQr').boundingBox();
+  ok(qrBox.width>=180, `QR is big enough to scan across a room (${Math.round(qrBox.width)}px)`);
+  ok((await p.locator('#shareQr').getAttribute('alt')).length>5, 'QR has a described alt');
+  ok((await p.locator('#shareUrl').textContent()).includes('todocet10.space'), 'the URL is shown as text too');
+  ok(await p.evaluate(()=>window.__shared)===null, 'opening the dialog does not fire the share sheet by itself');
+
+  await p.locator('#shareNative').click(); await p.waitForTimeout(400);
   const shared=await p.evaluate(()=>window.__shared);
-  ok(!!shared, 'tapping calls the native share sheet');
-  ok(shared.url && shared.url.startsWith('http'), `shares a URL (${shared?.url})`);
+  ok(!!shared, 'the dialog button calls the native share sheet');
+  ok(shared.url==='https://todocet10.space/', `shares the canonical URL (${shared?.url})`);
   ok(!shared.url.includes('#'), 'URL has no fragment');
   ok(shared.title==='CET10 Hub', `share title "${shared?.title}"`);
   ok(shared.text && shared.text.length>20, `share text present ("${shared?.text?.slice(0,40)}…")`);
   ok(!(await p.locator('#installDialog').evaluate(d=>d.open)), 'share mode does not open the install dialog');
+  ok((await p.locator('#shareNative').textContent()).length>3, 'sheet button is labelled');
   await c.close();
 }
 
@@ -52,10 +65,13 @@ const installed = () => ({ viewport:{width:390,height:844}, userAgent:IOS, local
   });
   const p=await c.newPage(); await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
   await p.locator('#install').click(); await p.waitForTimeout(300);
+  ok(await p.locator('#shareDialog').evaluate(d=>d.open), 'no share API: dialog still opens with the QR');
+  ok((await p.locator('#shareNative').textContent()).match(/copy/i), 'button offers to copy instead of sheet');
+  await p.locator('#shareNative').click(); await p.waitForTimeout(300);
   ok(((await p.evaluate(()=>window.__copied)) ?? '').startsWith('http'), 'no share API: copies the link instead');
-  ok((await p.locator('#install').textContent()).includes('Link copied'), 'shows a copied confirmation');
-  await p.waitForTimeout(2400);
-  ok((await p.locator('#install').textContent()).includes('Share'), 'confirmation reverts to Share');
+  ok((await p.locator('#shareNative').textContent()).includes('copied'), 'shows a copied confirmation');
+  await p.waitForTimeout(2200);
+  ok((await p.locator('#shareNative').textContent()).match(/copy/i), 'confirmation reverts');
   await c.close();
 }
 
@@ -69,7 +85,8 @@ const installed = () => ({ viewport:{width:390,height:844}, userAgent:IOS, local
   });
   const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(400);
-  await p.locator('#install').click(); await p.waitForTimeout(400);
+  await p.locator('#install').click(); await p.waitForTimeout(300);
+  await p.locator('#shareNative').click(); await p.waitForTimeout(400);
   ok(errs.length===0, `cancelling the share sheet throws nothing (${errs.join('|')})`);
   ok(await p.locator('.gym').count()===3, 'app still fine after a cancelled share');
   await c.close();
@@ -84,7 +101,7 @@ for (const [code, inst, shr] of [['ca','pantalla d’inici','Compartir'],['es','
     await p.goto(BASE,{waitUntil:'networkidle'});
     await p.evaluate(l=>localStorage.setItem('cet10hub.lang',l), code);
     await p.reload({waitUntil:'networkidle'}); await p.waitForTimeout(400);
-    const txt=(await p.locator('#install').textContent()).trim();
+    const txt=(await p.locator('#install').getAttribute('aria-label')).trim();
     ok(txt.includes(needle), `${code}/${mode}: "${txt}"`);
     await c.close();
   }

@@ -523,29 +523,42 @@ const isInstalled = () => matchMedia('(display-mode: standalone)').matches
  * turns into Share, so there is always something useful there — and so the
  * person who already installed it can still hand the link to someone else.
  */
+/**
+ * Icon-only in the header, so it stays a 44px target without crowding the
+ * lockup. The label lives on aria-label rather than beside it.
+ */
 function refreshInstallButton() {
   const strings = t(lang);
   const installed = isInstalled();
 
   installButton.dataset.mode = installed ? 'share' : 'install';
-  installButton.replaceChildren();
-  installButton.insertAdjacentHTML('afterbegin',
-    icon(installed ? 'share' : 'install', 'install__icon'));
-  installButton.append(document.createTextNode(installed ? strings.share : strings.install));
+  installButton.setAttribute('aria-label', installed ? strings.share : strings.install);
+  installButton.title = installed ? strings.share : strings.install;
+  installButton.innerHTML = icon(installed ? 'share' : 'install', 'header-action__icon');
 }
 
-/** Brief confirmation without a full re-render, which would clobber it. */
-function flashShared(strings) {
-  installButton.replaceChildren();
-  installButton.insertAdjacentHTML('afterbegin', icon('check', 'install__icon'));
-  installButton.append(document.createTextNode(strings.shareCopied));
-  setTimeout(() => refreshInstallButton(), 2200);
+/** The URL the QR encodes, and what the share sheet passes on. */
+const CANONICAL_URL = 'https://todocet10.space/';
+
+const shareDialog = document.getElementById('shareDialog');
+const shareNative = document.getElementById('shareNative');
+
+function openShare() {
+  const strings = t(lang);
+  document.getElementById('shareTitle').textContent = strings.shareTitle;
+  document.getElementById('shareLead').textContent = strings.shareLead;
+  document.getElementById('shareQr').alt = strings.shareQrAlt;
+  document.getElementById('shareUrl').textContent = CANONICAL_URL.replace(/^https:\/\//, '');
+
+  // Native sheet where it exists, copy-to-clipboard everywhere else.
+  shareNative.textContent = navigator.share ? strings.shareSheet : strings.shareCopy;
+  document.getElementById('shareClose').textContent = strings.infoClose;
+  shareDialog.showModal();
 }
 
 async function shareApp() {
   const strings = t(lang);
-  const url = location.href.split('#')[0];
-  const payload = { title: 'CET10 Hub', text: strings.shareText, url };
+  const payload = { title: 'CET10 Hub', text: strings.shareText, url: CANONICAL_URL };
 
   if (navigator.share) {
     try {
@@ -557,14 +570,21 @@ async function shareApp() {
   }
 
   try {
-    await navigator.clipboard.writeText(url);
-    flashShared(strings);
+    await navigator.clipboard.writeText(CANONICAL_URL);
+    const original = shareNative.textContent;
+    shareNative.textContent = strings.shareCopied;
+    setTimeout(() => { shareNative.textContent = original; }, 2000);
   } catch {
-    // Clipboard blocked (insecure context, permissions): show the URL instead
-    // of failing silently.
-    prompt(strings.shareCopied, url); // eslint-disable-line no-alert
+    // Clipboard blocked (insecure context, permissions): the URL is already
+    // on screen under the QR, so say nothing rather than throwing.
   }
 }
+
+shareNative.addEventListener('click', shareApp);
+document.getElementById('shareClose').addEventListener('click', () => shareDialog.close());
+shareDialog.addEventListener('click', (event) => {
+  if (event.target === shareDialog) shareDialog.close();
+});
 
 function openInstallDialog() {
   const strings = t(lang);
@@ -602,7 +622,7 @@ addEventListener('appinstalled', () => {
 
 installButton.addEventListener('click', async () => {
   if (installButton.dataset.mode === 'share') {
-    await shareApp();
+    openShare();
     return;
   }
 

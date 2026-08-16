@@ -11,6 +11,16 @@
   --brand: #61b4e4;
   --brand-deep: #4e90b6;
 
+  /* The masthead is its own surface. Keeping it as tokens lets dark mode use a
+     deep blue instead of a glaring light band, and lets the lockup mark's
+     cut-outs track whatever the background actually is. */
+  --masthead-from: #61b4e4;
+  --masthead-to: #4e90b6;
+  --masthead-ink: #ffffff;
+  --masthead-ink-soft: rgb(255 255 255 / 92%);
+  --masthead-control: rgb(255 255 255 / 16%);
+  --masthead-control-hover: rgb(255 255 255 / 26%);
+
   --bg: #f2f5f7;
   --surface: #ffffff;
   --text: #26333a;
@@ -48,6 +58,15 @@
     --line: #263942;
     --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 32%);
 
+    /* A deep, desaturated blue: still recognisably CET10, but it sits with the
+       dark page instead of glaring against it. */
+    --masthead-from: #1d4a61;
+    --masthead-to: #12303d;
+    --masthead-ink: #eaf4fa;
+    --masthead-ink-soft: rgb(234 244 250 / 82%);
+    --masthead-control: rgb(234 244 250 / 12%);
+    --masthead-control-hover: rgb(234 244 250 / 20%);
+
     /* Brighter only where the ground is dark — the card. */
     --status-open: #35d69b;
     --status-soon: #ffb347;
@@ -78,10 +97,45 @@ body {
 /* ---------- masthead ---------- */
 
 .masthead {
-  background: linear-gradient(160deg, var(--brand) 0%, var(--brand-deep) 100%);
-  color: #fff;
+  background: linear-gradient(160deg, var(--masthead-from) 0%, var(--masthead-to) 100%);
+  color: var(--masthead-ink);
   padding-block: calc(1.5rem + env(safe-area-inset-top)) 1.4rem;
 }
+
+/* Lockup left, the install/share control right. */
+.masthead__inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.masthead__text { min-width: 0; }
+
+.header-action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-top: -2px;
+  padding: 0;
+  border: 1px solid var(--masthead-control-hover);
+  border-radius: 50%;
+  background: var(--masthead-control);
+  color: var(--masthead-ink);
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.12s ease;
+}
+
+.header-action:active { transform: scale(0.93); }
+
+@media (hover: hover) {
+  .header-action:hover { background: var(--masthead-control-hover); }
+}
+
+.header-action__icon { width: 20px; height: 20px; }
 
 .lockup {
   margin: 0;
@@ -99,13 +153,13 @@ body {
 .lockup__mark {
   width: 0.52em;
   height: 0.52em;
-  color: #fff;
+  color: var(--masthead-ink);
   align-self: flex-start;
   margin-top: 0.06em;
 }
 
-.lockup__mark-cut { fill: var(--brand); }
-.lockup__mark-cut-stroke { stroke: var(--brand); }
+.lockup__mark-cut { fill: var(--masthead-from); }
+.lockup__mark-cut-stroke { stroke: var(--masthead-from); }
 
 .lockup__hub {
   font-weight: 300;
@@ -115,10 +169,10 @@ body {
 
 .masthead__tagline {
   margin: 0.5rem 0 0;
+  color: var(--masthead-ink-soft);
   font-weight: 300;
   font-size: 0.95rem;
   letter-spacing: 0.02em;
-  opacity: 0.95;
 }
 
 /* ---------- quick book ---------- */
@@ -652,10 +706,6 @@ body {
 
 .install__icon { width: 17px; height: 17px; flex: none; }
 
-@media (prefers-color-scheme: dark) {
-  .install { color: var(--brand); }
-}
-
 @media (hover: hover) {
   .install:hover { background: color-mix(in srgb, var(--brand) 22%, var(--surface)); }
 }
@@ -721,6 +771,43 @@ body {
 
 @media (prefers-color-scheme: dark) {
   .footer-link:hover { color: var(--brand); }
+}
+
+/* ---------- share dialog ---------- */
+
+.share__lead {
+  margin: -0.4rem 0 1rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* Always light behind the code: scanners want maximum contrast, and a dark
+   QR on a dark surface is unreliable. */
+.share__qr {
+  padding: 0.9rem;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgb(16 36 46 / 10%);
+}
+
+.share__qr img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 260px;
+  margin-inline: auto;
+  image-rendering: pixelated;
+}
+
+.share__url {
+  margin: 0.8rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  text-align: center;
+  word-break: break-all;
+  user-select: all;
 }
 
 /* ---------- privacy notice ---------- */
@@ -897,7 +984,7 @@ body {
   outline-offset: 2px;
 }
 
-.masthead :where(a, button):focus-visible { outline-color: #fff; }
+.masthead :where(a, button):focus-visible { outline-color: var(--masthead-ink); }
 
 /* ---------- screen-reader only ---------- */
 

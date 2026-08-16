@@ -13,7 +13,7 @@
  * Bump CACHE whenever the shell list changes; old caches are dropped on activate.
  */
 
-const CACHE = 'cet10hub-v3';
+const CACHE = 'cet10hub-v4';
 
 /** How long to wait for the network before falling back to cache, in ms. */
 const NETWORK_TIMEOUT = 3000;
@@ -32,6 +32,7 @@ const SHELL = [
   'assets/img/bdr.webp',
   'assets/img/jupiter.webp',
   'assets/img/maresme.webp',
+  'assets/img/qr.svg',
   'assets/img/icon-192.png',
   'assets/img/apple-touch-icon.png',
 ];

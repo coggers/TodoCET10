@@ -7,7 +7,7 @@
 <meta name="description" content="One tap to book classes at CEM Bac de Roda, CEM Júpiter and CEM Maresme.">
 
 <meta name="theme-color" content="#61B4E4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1b22" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#12303d" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.web3forms.com; form-action 'none'; base-uri 'none'; object-src 'none'">
@@ -26,7 +26,8 @@
 <body>
 
 <header class="masthead">
-  <div class="wrap">
+  <div class="wrap masthead__inner">
+    <div class="masthead__text">
     <h1 class="lockup">
       <span class="lockup__word">CET<span class="lockup__num">10</span></span>
       <svg class="lockup__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
@@ -39,6 +40,8 @@
       <span class="lockup__hub">Hub</span>
     </h1>
     <p class="masthead__tagline" data-i18n="tagline">Book classes at your centres</p>
+    </div>
+    <button type="button" class="header-action" id="install"></button>
   </div>
 </header>
 
@@ -72,7 +75,6 @@
 </main>
 
 <footer class="wrap site-footer">
-  <button type="button" class="install" id="install"></button>
   <p class="site-footer__note" data-i18n="footer">Links to the official CET10 portals. Not an official app.</p>
   <div class="footer-links" id="footerLinks"></div>
   <div class="langs" id="langs" role="group" aria-label="Language"></div>
@@ -81,6 +83,19 @@
 <p class="sr-only" id="liveStatus" role="status" aria-live="polite"></p>
 
 <p class="offline-banner" id="offline" role="status" hidden data-i18n="offline"></p>
+
+<dialog class="info share" id="shareDialog">
+  <h2 class="info__title" id="shareTitle"></h2>
+  <p class="share__lead" id="shareLead"></p>
+  <div class="share__qr">
+    <img src="assets/img/qr.svg" id="shareQr" width="512" height="512" alt="">
+  </div>
+  <p class="share__url" id="shareUrl"></p>
+  <div class="info__actions">
+    <button type="button" class="btn btn--primary" id="shareNative"></button>
+    <button type="button" class="btn btn--ghost" id="shareClose"></button>
+  </div>
+</dialog>
 
 <dialog class="info" id="privacyDialog">
   <h2 class="info__title" id="privacyTitle"></h2>
