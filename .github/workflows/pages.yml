@@ -32,7 +32,7 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p _site
-          cp -r index.html manifest.webmanifest sw.js assets CNAME _site/
+          cp -r index.html manifest.webmanifest sw.js robots.txt assets CNAME _site/
           echo "--- deploying ---"
           find _site -type f | sort
 

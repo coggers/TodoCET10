@@ -1,0 +1,9 @@
+# The site is not ready to be found yet: it still carries gym photos that are
+# being replaced with originals. Keeping it out of search until then.
+#
+# TO LAUNCH: delete this file AND remove the <meta name="robots" content="noindex">
+# from index.html. Both must go — robots.txt stops crawling, the meta tag stops
+# indexing, and they do different jobs.
+
+User-agent: *
+Disallow: /

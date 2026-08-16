@@ -113,8 +113,14 @@ uptime checks against a host that blocks datacenter IPs.
   branch, and work has more than once been committed to the wrong branch by not reading
   that. Confirm `git rev-parse --abbrev-ref HEAD` before committing, not after.
 - **Deploy**: merging to `main` triggers `.github/workflows/pages.yml`, which assembles a
-  `_site` directory. Anything not copied there is not published. `CNAME` must be included
-  or the custom domain drops.
+  `_site` directory from a fixed `cp` list. **Anything not on that list is not published** —
+  add new root files to it or they silently never ship. `CNAME` must be included or the
+  custom domain drops.
+- **The site is currently hidden from search**, via `robots.txt` and a `noindex` meta tag,
+  because it still carries gym photos awaiting replacement with originals. **Both must be
+  removed together at launch**: `robots.txt` stops crawling, the meta tag stops indexing,
+  and they do different jobs. A test asserts both are in place, so it will fail loudly when
+  you take them out — that failure is the reminder to remove the test too.
 - **Verify the live site after deploying**, not just the build.
 - **Copy**: British English. All user-facing strings live in `assets/js/i18n.js` in
   Catalan, Spanish and English — all three, always.
