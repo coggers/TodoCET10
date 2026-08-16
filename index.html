@@ -66,11 +66,21 @@
 </main>
 
 <footer class="wrap site-footer">
+  <button type="button" class="install" id="install" hidden></button>
   <p class="site-footer__note" data-i18n="footer">Links to the official CET10 portals. Not an official app.</p>
   <div class="langs" id="langs" role="group" aria-label="Language"></div>
 </footer>
 
 <p class="offline-banner" id="offline" role="status" hidden data-i18n="offline"></p>
+
+<dialog class="info" id="installDialog">
+  <h2 class="info__title" id="installTitle"></h2>
+  <p class="info__lead" id="installLead" hidden></p>
+  <ol class="steps" id="installSteps"></ol>
+  <div class="info__actions">
+    <button type="button" class="btn btn--primary" id="installClose"></button>
+  </div>
+</dialog>
 
 <dialog class="info" id="infoDialog">
   <h2 class="info__title" id="infoTitle"></h2>

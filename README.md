@@ -44,8 +44,20 @@ there is no backend, and nothing is transmitted anywhere. Declining leaves the o
 
 ## Add it to your home screen
 
-- **iOS / Safari** — open the site, tap Share, then *Add to Home Screen*.
-- **Android / Chrome** — open the site, tap the ⋮ menu, then *Install app* / *Add to Home screen*.
+There is an **Add to Home Screen** button in the footer, which hides itself once the app is
+installed. What it does depends on the platform, because the platforms genuinely differ:
+
+- **Android / Chromium** — captures `beforeinstallprompt` and replays it on tap, so this is
+  a real one-tap install. Chrome's own mini-infobar is suppressed so the button is the only
+  entry point. The manifest carries `description` and `screenshots`, which is what makes
+  Chrome show its rich install dialog rather than a bare info bar.
+- **iOS / Safari** — shows the steps instead. This is not a shortcut: Safari implements no
+  install API at all and there is no way to trigger *Add to Home Screen* programmatically,
+  so accurate instructions are the best that exists.
+- **Inside another app's browser** (Instagram, Facebook…) — says so and asks you to reopen
+  in Safari or Chrome, rather than giving steps that cannot work there.
+
+Manually, it is Share → *Add to Home Screen* on iOS, or ⋮ → *Install app* on Android.
 
 It launches without browser chrome and the shell works offline (the portals themselves
 still need a connection).

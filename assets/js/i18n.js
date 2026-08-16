@@ -60,6 +60,20 @@ const STRINGS = {
     infoOpenPortal: 'Obrir el portal per comprovar-ho',
     infoClose: 'Entesos',
     infoAria: 'Com es calcula l’horari',
+
+    install: 'Afegir a la pantalla d’inici',
+    installTitle: 'Afegir a la pantalla d’inici',
+    installIos: [
+      'Toca el botó Compartir a la barra de Safari (el quadrat amb la fletxa cap amunt).',
+      'Baixa per la llista i tria «Afegir a la pantalla d’inici».',
+      'Toca «Afegir». El CET10 Hub apareixerà amb la resta d’aplicacions.',
+    ],
+    installGeneric: [
+      'Obre el menú del navegador.',
+      'Tria «Instal·lar aplicació» o «Afegir a la pantalla d’inici».',
+      'Confirma-ho. El CET10 Hub apareixerà amb la resta d’aplicacions.',
+    ],
+    installInApp: 'Estàs dins del navegador d’una altra app. Obre aquesta pàgina a Safari o Chrome per poder afegir-la.',
   },
   es: {
     tagline: 'Reserva clases en tus centros',
@@ -113,6 +127,20 @@ const STRINGS = {
     infoOpenPortal: 'Abrir el portal para comprobarlo',
     infoClose: 'Entendido',
     infoAria: 'Cómo se calcula el horario',
+
+    install: 'Añadir a la pantalla de inicio',
+    installTitle: 'Añadir a la pantalla de inicio',
+    installIos: [
+      'Toca el botón Compartir en la barra de Safari (el cuadrado con la flecha hacia arriba).',
+      'Baja por la lista y elige «Añadir a pantalla de inicio».',
+      'Toca «Añadir». CET10 Hub aparecerá junto al resto de tus aplicaciones.',
+    ],
+    installGeneric: [
+      'Abre el menú del navegador.',
+      'Elige «Instalar aplicación» o «Añadir a la pantalla de inicio».',
+      'Confírmalo. CET10 Hub aparecerá junto al resto de tus aplicaciones.',
+    ],
+    installInApp: 'Estás dentro del navegador de otra app. Abre esta página en Safari o Chrome para poder añadirla.',
   },
   en: {
     tagline: 'Book classes at your centres',
@@ -166,6 +194,20 @@ const STRINGS = {
     infoOpenPortal: 'Open the portal to check',
     infoClose: 'Got it',
     infoAria: 'How this opening status works',
+
+    install: 'Add to Home Screen',
+    installTitle: 'Add to your home screen',
+    installIos: [
+      'Tap the Share button in Safari’s toolbar (the square with an arrow pointing up).',
+      'Scroll down the list and choose “Add to Home Screen”.',
+      'Tap “Add”. CET10 Hub will appear alongside your other apps.',
+    ],
+    installGeneric: [
+      'Open your browser’s menu.',
+      'Choose “Install app” or “Add to Home screen”.',
+      'Confirm. CET10 Hub will appear alongside your other apps.',
+    ],
+    installInApp: 'You are inside another app’s browser. Open this page in Safari or Chrome to add it.',
   },
 };
 

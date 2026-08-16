@@ -588,6 +588,59 @@ body {
   text-align: center;
 }
 
+.install {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 46px;
+  margin-bottom: 1.1rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface));
+  color: var(--brand-deep);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.install[hidden] { display: none; }
+
+.install__icon { width: 17px; height: 17px; flex: none; }
+
+@media (prefers-color-scheme: dark) {
+  .install { color: var(--brand); }
+}
+
+@media (hover: hover) {
+  .install:hover { background: color-mix(in srgb, var(--brand) 22%, var(--surface)); }
+}
+
+.info__lead {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, #ff9900 18%, transparent);
+  color: var(--text);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.info__lead[hidden] { display: none; }
+
+.steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-soft);
+  font-size: 0.87rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.steps li { margin-bottom: 0.6rem; }
+
 .site-footer__note {
   margin: 0 0 0.8rem;
   color: var(--text-soft);

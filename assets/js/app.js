@@ -43,6 +43,7 @@ const ICONS = {
   directions: '<path d="M19 10.4c0 5-7 10.6-7 10.6s-7-5.6-7-10.6a7 7 0 1114 0z"/><circle cx="12" cy="10.2" r="2.5"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/>',
   reset: '<path d="M20 12a8 8 0 11-2.6-5.9"/><path d="M20 4v4.5h-4.5"/>',
+  install: '<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M12 8v7"/><path d="M9 12l3 3 3-3"/>',
   reception: '<path d="M4 13a8 8 0 1116 0"/><path d="M4 13v3a2 2 0 002 2h1v-5H6a2 2 0 00-2 2z"/><path d="M20 13v3a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2z"/><path d="M17 18v.6a2.4 2.4 0 01-2.4 2.4H13"/>',
 };
 
@@ -375,6 +376,7 @@ function render() {
     node.textContent = strings[node.dataset.i18n];
   }
   renderLangs();
+  refreshInstallButton();
 }
 
 // ---------------------------------------------------------------- distance sort
@@ -439,6 +441,94 @@ infoDialog.addEventListener('click', (event) => {
   // Click on the backdrop (the dialog element itself) closes it.
   if (event.target === infoDialog) infoDialog.close();
 });
+
+// ---------------------------------------------------------------- install
+
+/**
+ * Adding to the home screen differs sharply by platform:
+ *
+ *  - Chromium (Android, desktop) fires `beforeinstallprompt`, which we defer and
+ *    replay on a tap. That is a genuine one-tap install.
+ *  - iOS has no equivalent. Safari implements no install API at all, so the only
+ *    honest option there is to show the actual steps.
+ *  - Inside another app's web view (Instagram, Facebook…) there is no way to
+ *    install at all, so say that rather than give steps that will not work.
+ */
+const installButton = document.getElementById('install');
+const installDialog = document.getElementById('installDialog');
+
+let deferredPrompt = null;
+
+const ua = navigator.userAgent;
+const isIOS = /iphone|ipad|ipod/i.test(ua)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isInAppBrowser = /FBAN|FBAV|Instagram|Line\/|Twitter|WhatsApp|MicroMessenger/i.test(ua);
+
+const isInstalled = () => matchMedia('(display-mode: standalone)').matches
+  || matchMedia('(display-mode: fullscreen)').matches
+  || navigator.standalone === true;
+
+function refreshInstallButton() {
+  const strings = t(lang);
+  // Nothing to offer once it is already on the home screen.
+  installButton.hidden = isInstalled();
+  installButton.replaceChildren();
+  installButton.insertAdjacentHTML('afterbegin', icon('install', 'install__icon'));
+  installButton.append(document.createTextNode(strings.install));
+}
+
+function openInstallDialog() {
+  const strings = t(lang);
+  document.getElementById('installTitle').textContent = strings.installTitle;
+
+  const lead = document.getElementById('installLead');
+  lead.hidden = !isInAppBrowser;
+  lead.textContent = isInAppBrowser ? strings.installInApp : '';
+
+  const steps = isIOS ? strings.installIos : strings.installGeneric;
+  document.getElementById('installSteps').replaceChildren(...steps.map((step) => {
+    const li = document.createElement('li');
+    li.textContent = step;
+    return li;
+  }));
+
+  const close = document.getElementById('installClose');
+  close.textContent = strings.infoClose;
+  close.onclick = () => installDialog.close();
+
+  installDialog.showModal();
+}
+
+addEventListener('beforeinstallprompt', (event) => {
+  // Suppress Chrome's own mini-infobar so our button is the single entry point.
+  event.preventDefault();
+  deferredPrompt = event;
+  refreshInstallButton();
+});
+
+addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  installButton.hidden = true;
+});
+
+installButton.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    // The deferred event is single-use; Chrome will fire a fresh one if declined.
+    deferredPrompt = null;
+    if (outcome === 'accepted') installButton.hidden = true;
+    return;
+  }
+  openInstallDialog();
+});
+
+installDialog.addEventListener('click', (event) => {
+  if (event.target === installDialog) installDialog.close();
+});
+
+// Installing while the page is open should retire the button immediately.
+matchMedia('(display-mode: standalone)').addEventListener('change', refreshInstallButton);
 
 // ---------------------------------------------------------------- online state
 
