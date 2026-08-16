@@ -1,5 +1,5 @@
 import { GYMS, portalUrl, mapsUrl, inkFor, distanceKm } from '../data/gyms.js';
-import { statusFor } from '../data/hours.js';
+import { statusFor, bookingGapAhead } from '../data/hours.js';
 import { LANGS, detectLang, setLang, t } from './i18n.js';
 
 const gymList = document.getElementById('gyms');
@@ -11,6 +11,7 @@ const openNowButton = document.getElementById('openNow');
 const resetButton = document.getElementById('reset');
 const sortNote = document.getElementById('sortNote');
 const emptyNote = document.getElementById('empty');
+const bookingNotice = document.getElementById('bookingNotice');
 const infoDialog = document.getElementById('infoDialog');
 
 const SORT_KEY = 'cet10hub.sort';
@@ -377,6 +378,10 @@ function render() {
   }
   renderLangs();
   refreshInstallButton();
+
+  // Only worth saying on the days when the booking window lands on the weekend.
+  bookingNotice.hidden = !bookingGapAhead();
+  bookingNotice.textContent = strings.bookingGap;
 }
 
 // ---------------------------------------------------------------- distance sort

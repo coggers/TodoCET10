@@ -74,6 +74,8 @@ const STRINGS = {
       'Confirma-ho. El CET10 Hub apareixerà amb la resta d’aplicacions.',
     ],
     installInApp: 'Estàs dins del navegador d’una altra app. Obre aquesta pàgina a Safari o Chrome per poder afegir-la.',
+
+    bookingGap: 'És divendres: les properes 48 hores són el cap de setmana, quan normalment no hi ha classes dirigides. Com que les reserves solen obrir-se amb uns 2 dies d’antelació, potser encara no hi ha res per reservar fins que s’obrin les de dilluns.',
   },
   es: {
     tagline: 'Reserva clases en tus centros',
@@ -141,6 +143,8 @@ const STRINGS = {
       'Confírmalo. CET10 Hub aparecerá junto al resto de tus aplicaciones.',
     ],
     installInApp: 'Estás dentro del navegador de otra app. Abre esta página en Safari o Chrome para poder añadirla.',
+
+    bookingGap: 'Es viernes: las próximas 48 horas son el fin de semana, cuando normalmente no hay clases dirigidas. Como las reservas suelen abrirse con unos 2 días de antelación, puede que aún no haya nada que reservar hasta que se abran las del lunes.',
   },
   en: {
     tagline: 'Book classes at your centres',
@@ -208,6 +212,8 @@ const STRINGS = {
       'Confirm. CET10 Hub will appear alongside your other apps.',
     ],
     installInApp: 'You are inside another app’s browser. Open this page in Safari or Chrome to add it.',
+
+    bookingGap: 'It’s Friday: the next 48 hours are the weekend, when there are normally no timetabled classes. Since bookings usually open about 2 days ahead, there may be nothing to book yet until Monday’s classes open up.',
   },
 };
 

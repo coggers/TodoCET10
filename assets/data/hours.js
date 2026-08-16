@@ -18,6 +18,14 @@ export const TZ = 'Europe/Madrid';
 /** Minutes before closing at which we switch to the amber "closing soon" state. */
 export const CLOSING_SOON_MINS = 60;
 
+/**
+ * Timetabled classes do not generally run at the weekend, and the portals only
+ * open bookings about 48 hours ahead. Both are the centres' usual practice
+ * rather than a published guarantee, which is why the notice is worded softly.
+ */
+export const NO_CLASS_DAYS = new Set([0, 6]); // Sunday, Saturday
+export const BOOKING_WINDOW_HOURS = 48;
+
 export const HOURS = {
   bdr: { weekday: ['06:30', '23:30'], sat: ['08:00', '21:00'], sun: ['09:00', '20:00'] },
   jupiter: { weekday: ['07:00', '23:00'], sat: ['09:00', '20:00'], sun: ['09:00', '15:00'] },
@@ -132,6 +140,21 @@ function rowFor(gymId, weekday, isHoliday) {
   if (isHoliday || weekday === 0) return hours.sun;
   if (weekday === 6) return hours.sat;
   return hours.weekday;
+}
+
+/**
+ * True when every day inside the booking window falls on a no-class day — which
+ * today means Fridays, since the next 48 hours are then Saturday and Sunday.
+ *
+ * Derived from the two constants above rather than hardcoding "Friday", so it
+ * stays right if the window or the class days ever change.
+ */
+export function bookingGapAhead(date = new Date()) {
+  const { weekday } = barcelonaNow(date);
+  const daysAhead = Math.floor(BOOKING_WINDOW_HOURS / 24);
+
+  return Array.from({ length: daysAhead }, (_, i) => (weekday + i + 1) % 7)
+    .every((day) => NO_CLASS_DAYS.has(day));
 }
 
 /**

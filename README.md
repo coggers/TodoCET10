@@ -36,6 +36,18 @@ the calendar does not expire after a year.
 it never contacts the centre. The ⓘ button on each card says exactly this and links through
 to the portal to confirm. If the trip matters, check.
 
+### Weekend booking notice
+
+On Fridays a short amber note appears under the quick-book row, because the next 48 hours
+are the weekend, timetabled classes do not generally run then, and the portals only open
+bookings around two days ahead — so there is often nothing to book until Monday's classes
+open up.
+
+It is derived from two constants in [`assets/data/hours.js`](assets/data/hours.js),
+`NO_CLASS_DAYS` and `BOOKING_WINDOW_HOURS`, rather than hardcoding "Friday". Change either
+and the notice moves to whatever day it should then apply to. Like the opening status, this
+is the centres' usual practice rather than a published guarantee, so the wording is hedged.
+
 ### Sort by distance
 
 Optional, off by default. Tapping it asks the browser for your location, computes the

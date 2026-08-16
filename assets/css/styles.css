@@ -185,6 +185,32 @@ body {
 
 .quickbook__pill:active { transform: scale(0.97); }
 
+/* ---------- contextual notice ---------- */
+
+.notice {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, #ff9900 16%, var(--surface));
+  border: 1px solid color-mix(in srgb, #ff9900 34%, transparent);
+  color: var(--text);
+  font-size: 0.79rem;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.notice::before {
+  content: '';
+  flex: none;
+  width: 4px;
+  border-radius: 2px;
+  background: #ff9900;
+}
+
+.notice[hidden] { display: none; }
+
 /* ---------- toolbar ---------- */
 
 .toolbar {
