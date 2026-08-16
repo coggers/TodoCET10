@@ -7,15 +7,19 @@ const quickBook = document.getElementById('quickbook');
 const langBar = document.getElementById('langs');
 const offlineBanner = document.getElementById('offline');
 const sortButton = document.getElementById('sort');
+const openNowButton = document.getElementById('openNow');
 const sortNote = document.getElementById('sortNote');
+const emptyNote = document.getElementById('empty');
 const infoDialog = document.getElementById('infoDialog');
 
 const SORT_KEY = 'cet10hub.sort';
+const OPEN_KEY = 'cet10hub.openNow';
 
 let lang = detectLang();
 /** Set once geolocation succeeds; keys are gym ids, values km. */
 let distances = null;
 let sortMode = localStorage.getItem(SORT_KEY) === 'distance' ? 'distance' : 'default';
+let openOnly = localStorage.getItem(OPEN_KEY) === '1';
 let locating = false;
 /** Which i18n key the line under the sort button is currently showing. */
 let noteKey = 'locationPrivacy';
@@ -31,6 +35,7 @@ const ICONS = {
   site: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.9 2.6 15.1 0 18M12 3c-2.6 2.9-2.6 15.1 0 18"/>',
   call: '<path d="M7.7 4H4.4A1.4 1.4 0 003 5.5 15.5 15.5 0 0018.5 21a1.4 1.4 0 001.5-1.4v-3.3l-3.6-1.2-1.9 1.9a12.4 12.4 0 01-5.5-5.5l1.9-1.9z"/>',
   directions: '<path d="M19 10.4c0 5-7 10.6-7 10.6s-7-5.6-7-10.6a7 7 0 1114 0z"/><circle cx="12" cy="10.2" r="2.5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/>',
   reception: '<path d="M4 13a8 8 0 1116 0"/><path d="M4 13v3a2 2 0 002 2h1v-5H6a2 2 0 00-2 2z"/><path d="M20 13v3a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2z"/><path d="M17 18v.6a2.4 2.4 0 01-2.4 2.4H13"/>',
 };
 
@@ -64,10 +69,15 @@ function externalLink(href, className, text, label) {
   return a;
 }
 
-/** Gyms in the order they should be shown, honouring the distance sort. */
-function orderedGyms() {
-  if (sortMode !== 'distance' || !distances) return GYMS;
-  return [...GYMS].sort((a, b) => distances[a.id] - distances[b.id]);
+/** Closing soon still counts as open — you can still get a session in. */
+const isOpenNow = (gym) => statusFor(gym.id).state !== 'closed';
+
+/** Gyms to show, after the distance sort and the open-now filter. */
+function visibleGyms() {
+  const sorted = sortMode === 'distance' && distances
+    ? [...GYMS].sort((a, b) => distances[a.id] - distances[b.id])
+    : GYMS;
+  return openOnly ? sorted.filter(isOpenNow) : sorted;
 }
 
 function formatDistance(km) {
@@ -178,6 +188,9 @@ function renderGym(gym, strings) {
 
 function renderQuickBook(gyms, strings) {
   quickBook.replaceChildren();
+  // Nothing to quick-book when the filter has emptied the list.
+  quickBook.hidden = gyms.length === 0;
+  if (!gyms.length) return;
 
   const label = document.createElement('span');
   label.className = 'quickbook__label';
@@ -185,6 +198,7 @@ function renderQuickBook(gyms, strings) {
 
   const row = document.createElement('div');
   row.className = 'quickbook__row';
+  row.style.setProperty('--cols', String(gyms.length));
   for (const gym of gyms) {
     const pill = externalLink(portalUrl(gym, 'book'), 'quickbook__pill', gym.name,
       strings.quickBookFor(gym.name));
@@ -193,19 +207,27 @@ function renderQuickBook(gyms, strings) {
     row.append(pill);
   }
 
-  quickBook.append(label, row);
+  const panel = document.createElement('div');
+  panel.className = 'quickbook__panel';
+  panel.append(label, row);
+  quickBook.append(panel);
 }
 
+/**
+ * The sort button is an action, not a toggle: tapping it always re-reads your
+ * location, so moving between centres re-orders the list.
+ */
 function renderSort(strings) {
   sortButton.replaceChildren();
-  sortButton.insertAdjacentHTML('afterbegin', icon('directions', 'sort__icon'));
-  sortButton.append(document.createTextNode(
-    locating ? strings.locating
-      : sortMode === 'distance' ? strings.sortDefault
-        : strings.sortByDistance,
-  ));
+  sortButton.insertAdjacentHTML('afterbegin', icon('directions', 'pill-btn__icon'));
+  sortButton.append(document.createTextNode(locating ? strings.locating : strings.sortByDistance));
   sortButton.setAttribute('aria-pressed', String(sortMode === 'distance'));
   sortButton.disabled = locating;
+
+  openNowButton.replaceChildren();
+  openNowButton.insertAdjacentHTML('afterbegin', icon('clock', 'pill-btn__icon'));
+  openNowButton.append(document.createTextNode(strings.openNow));
+  openNowButton.setAttribute('aria-pressed', String(openOnly));
 }
 
 function renderLangs() {
@@ -230,11 +252,27 @@ function render() {
   const strings = t(lang);
   document.documentElement.lang = lang;
 
-  const gyms = orderedGyms();
+  const gyms = visibleGyms();
   gymList.replaceChildren(...gyms.map((gym) => renderGym(gym, strings)));
   renderQuickBook(gyms, strings);
   renderSort(strings);
   sortNote.textContent = strings[noteKey];
+
+  // The filter can legitimately match nothing — say so, with a way back.
+  emptyNote.hidden = gyms.length > 0;
+  if (!gyms.length) {
+    emptyNote.replaceChildren(document.createTextNode(strings.noneOpen + ' '));
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'empty__clear';
+    clear.textContent = strings.showAll;
+    clear.addEventListener('click', () => {
+      openOnly = false;
+      localStorage.removeItem(OPEN_KEY);
+      render();
+    });
+    emptyNote.append(clear);
+  }
 
   for (const node of document.querySelectorAll('[data-i18n]')) {
     node.textContent = strings[node.dataset.i18n];
@@ -275,19 +313,19 @@ function requestDistanceSort() {
       localStorage.removeItem(SORT_KEY);
       render();
     },
-    { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    // maximumAge 0: never reuse an old fix, or re-tapping could not re-sort.
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
   );
 }
 
-sortButton.addEventListener('click', () => {
-  if (sortMode === 'distance') {
-    sortMode = 'default';
-    noteKey = 'locationPrivacy';
-    localStorage.removeItem(SORT_KEY);
-    render();
-    return;
-  }
-  requestDistanceSort();
+// Always re-request — the point is to re-sort after you have moved.
+sortButton.addEventListener('click', requestDistanceSort);
+
+openNowButton.addEventListener('click', () => {
+  openOnly = !openOnly;
+  if (openOnly) localStorage.setItem(OPEN_KEY, '1');
+  else localStorage.removeItem(OPEN_KEY);
+  render();
 });
 
 infoDialog.addEventListener('click', (event) => {

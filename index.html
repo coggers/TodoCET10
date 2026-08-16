@@ -44,11 +44,16 @@
 
 <main class="wrap" id="main">
   <div class="toolbar">
-    <button type="button" class="sort" id="sort" aria-pressed="false"></button>
+    <div class="toolbar__buttons">
+      <button type="button" class="pill-btn" id="sort" aria-pressed="false"></button>
+      <button type="button" class="pill-btn" id="openNow" aria-pressed="false"></button>
+    </div>
     <p class="toolbar__privacy" id="sortNote"></p>
   </div>
 
   <ul class="gyms" id="gyms" aria-label="Centres"></ul>
+
+  <p class="empty" id="empty" hidden></p>
 
   <noscript>
     <ul class="gyms gyms--plain">

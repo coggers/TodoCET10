@@ -30,11 +30,13 @@ const STRINGS = {
     quickBook: 'Reserva ràpida',
     quickBookFor: (name) => `Reservar classes a CEM ${name}`,
 
-    sortByDistance: 'Ordenar per distància',
-    sortDefault: 'Ordre original',
+    sortByDistance: 'Més a prop',
     locationPrivacy: 'La teva ubicació es llegeix només al teu dispositiu, per ordenar aquesta llista. No s’envia enlloc.',
     locationDenied: 'No s’ha pogut obtenir la ubicació. Es manté l’ordre original.',
     locating: 'Obtenint ubicació…',
+    openNow: 'Obert ara',
+    noneOpen: 'Ara mateix no hi ha cap centre obert.',
+    showAll: 'Mostra’ls tots',
 
     statusOpen: (close) => `Obert fins a les ${close}`,
     statusSoon: (mins) => `Tanca en ${mins} min`,
@@ -75,11 +77,13 @@ const STRINGS = {
     quickBook: 'Reserva rápida',
     quickBookFor: (name) => `Reservar clases en CEM ${name}`,
 
-    sortByDistance: 'Ordenar por distancia',
-    sortDefault: 'Orden original',
+    sortByDistance: 'Más cerca',
     locationPrivacy: 'Tu ubicación se lee solo en tu dispositivo, para ordenar esta lista. No se envía a ningún sitio.',
     locationDenied: 'No se ha podido obtener la ubicación. Se mantiene el orden original.',
     locating: 'Obteniendo ubicación…',
+    openNow: 'Abierto ahora',
+    noneOpen: 'Ahora mismo no hay ningún centro abierto.',
+    showAll: 'Mostrarlos todos',
 
     statusOpen: (close) => `Abierto hasta las ${close}`,
     statusSoon: (mins) => `Cierra en ${mins} min`,
@@ -120,11 +124,13 @@ const STRINGS = {
     quickBook: 'Quick book',
     quickBookFor: (name) => `Book a class at CEM ${name}`,
 
-    sortByDistance: 'Sort by distance',
-    sortDefault: 'Original order',
+    sortByDistance: 'Nearest first',
     locationPrivacy: 'Your location is read on your device only, to order this list. It is never sent anywhere.',
     locationDenied: 'Could not get your location. Keeping the original order.',
     locating: 'Getting your location…',
+    openNow: 'Open now',
+    noneOpen: 'No centre is open right now.',
+    showAll: 'Show all',
 
     statusOpen: (close) => `Open until ${close}`,
     statusSoon: (mins) => `Closes in ${mins} min`,

@@ -103,23 +103,34 @@ body {
 /* ---------- quick book ---------- */
 
 .quickbook {
-  padding-block: 0.9rem 0.15rem;
+  padding-block: 0.9rem 0;
+}
+
+.quickbook[hidden] { display: none; }
+
+/* A tinted panel so the booking shortcuts read as their own zone, distinct
+   from both the blue masthead above and the white centre cards below. */
+.quickbook__panel {
+  padding: 0.7rem 0.8rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface));
 }
 
 .quickbook__label {
   display: block;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.45rem;
   font-size: 0.68rem;
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-soft);
+  color: color-mix(in srgb, var(--brand-deep) 70%, var(--text));
 }
 
-/* Three fixed columns: all three centres must be reachable without scrolling. */
+/* Fixed columns: every visible centre must be reachable without scrolling. */
 .quickbook__row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
   gap: 0.4rem;
 }
 
@@ -145,10 +156,16 @@ body {
 /* ---------- toolbar ---------- */
 
 .toolbar {
-  margin-top: 0.7rem;
+  margin-top: 1rem;
 }
 
-.sort {
+.toolbar__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pill-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -163,16 +180,16 @@ body {
   cursor: pointer;
 }
 
-.sort[aria-pressed='true'] {
+.pill-btn[aria-pressed='true'] {
   background: var(--brand);
   border-color: var(--brand);
   color: #fff;
   font-weight: 500;
 }
 
-.sort:disabled { opacity: 0.65; cursor: default; }
+.pill-btn:disabled { opacity: 0.65; cursor: default; }
 
-.sort__icon { width: 15px; height: 15px; flex: none; }
+.pill-btn__icon { width: 15px; height: 15px; flex: none; }
 
 .toolbar__privacy {
   margin: 0.45rem 0 0;
@@ -180,6 +197,35 @@ body {
   font-size: 0.73rem;
   font-weight: 300;
   line-height: 1.4;
+}
+
+/* ---------- empty state ---------- */
+
+.empty {
+  margin: 1.5rem 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  font-weight: 300;
+  text-align: center;
+}
+
+.empty[hidden] { display: none; }
+
+.empty__clear {
+  min-height: 36px;
+  padding: 0 0.2rem;
+  border: none;
+  background: none;
+  color: var(--brand-deep);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .empty__clear { color: var(--brand); }
 }
 
 /* ---------- gym cards ---------- */
