@@ -25,6 +25,9 @@ export const GYMS = [
     address: 'Rambla Guipúscoa 25, 08018 Barcelona',
     phone: '+34932663445',
     site: 'https://bacderodasport.com/',
+    reception: 'https://atenciousuari.bacderodasport.com/hc/ca',
+    lat: 41.414349,
+    lon: 2.194083,
   },
   {
     id: 'jupiter',
@@ -35,6 +38,9 @@ export const GYMS = [
     address: 'Carrer de l’Agricultura 232, 08020 Barcelona',
     phone: '+34933148820',
     site: 'https://jupitersport.cat/',
+    reception: 'https://atenciousuari.jupitersport.cat/hc/ca',
+    lat: 41.417432,
+    lon: 2.202179,
   },
   {
     id: 'maresme',
@@ -45,8 +51,22 @@ export const GYMS = [
     address: 'Carrer de Pallars 484, 08019 Barcelona',
     phone: '+34933083553',
     site: 'https://cemmaresme.com/',
+    reception: 'https://atenciousuari.cemmaresme.com/hc/ca',
+    lat: 41.409911,
+    lon: 2.209401,
   },
 ];
+
+/** Great-circle distance in km. Used only on-device, to order the list. */
+export function distanceKm(fromLat, fromLon, toLat, toLon) {
+  const R = 6371;
+  const rad = (deg) => (deg * Math.PI) / 180;
+  const dLat = rad(toLat - fromLat);
+  const dLon = rad(toLon - fromLon);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(fromLat)) * Math.cos(rad(toLat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
 /** Absolute URL for one of the PATHS keys on a given gym's portal. */
 export function portalUrl(gym, key) {

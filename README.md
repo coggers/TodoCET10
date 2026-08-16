@@ -13,6 +13,35 @@ this puts all three one tap away from the phone's home screen.
 It is a launcher, not a client: it opens the official portals and does nothing with your
 account or credentials. Not affiliated with CET10.
 
+## What's on it
+
+Each centre gets a card with **Book a class** and **My bookings** as the primary actions,
+plus secondary links for virtual reception, membership, sign in, portal, website, phone and
+directions. A quick-book row at the top goes straight to any centre's class booking.
+
+### Opening status
+
+Each card shows whether the centre is open right now — green open, amber closing soon,
+grey closed, amber on public holidays.
+
+This is a convenience heuristic, not live data. It uses each centre's **published regular
+timetable** ([`assets/data/hours.js`](assets/data/hours.js)) and the current time in
+Barcelona, evaluated in the `Europe/Madrid` timezone so it stays correct when you travel.
+Public holidays fall back to the Sunday timetable, which is the centres' own rule — all
+three publish their reduced hours as *"Diumenges i festius"*. Catalan and Barcelona fixed
+holidays are listed; Good Friday, Easter Monday and Whit Monday are computed from Easter so
+the calendar does not expire after a year.
+
+**It does not know about** summer timetables, maintenance closures or one-off changes, and
+it never contacts the centre. The ⓘ button on each card says exactly this and links through
+to the portal to confirm. If the trip matters, check.
+
+### Sort by distance
+
+Optional, off by default. Tapping it asks the browser for your location, computes the
+distance to each centre and reorders the list. Your location is read **on the device only** —
+there is no backend, and nothing is transmitted anywhere. Declining leaves the order alone.
+
 ## Add it to your home screen
 
 - **iOS / Safari** — open the site, tap Share, then *Add to Home Screen*.
@@ -20,6 +49,15 @@ account or credentials. Not affiliated with CET10.
 
 It launches without browser chrome and the shell works offline (the portals themselves
 still need a connection).
+
+### Updates
+
+[`sw.js`](sw.js) is **network-first** for markup and code, so a deploy reaches an installed
+home-screen copy on the next launch, and **cache-first** for images and the font, which
+change only via a new filename. Bump `CACHE` whenever the shell file list changes.
+
+This matters: the first version was cache-first for everything, which pinned an installed
+copy to whatever version it was first opened with.
 
 ## Editing links, gyms, and colours
 

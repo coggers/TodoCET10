@@ -40,7 +40,14 @@
   </div>
 </header>
 
+<nav class="quickbook wrap" id="quickbook" aria-label="Quick book"></nav>
+
 <main class="wrap" id="main">
+  <div class="toolbar">
+    <button type="button" class="sort" id="sort" aria-pressed="false"></button>
+    <p class="toolbar__privacy" id="sortNote"></p>
+  </div>
+
   <ul class="gyms" id="gyms" aria-label="Centres"></ul>
 
   <noscript>
@@ -58,6 +65,15 @@
 </footer>
 
 <p class="offline-banner" id="offline" role="status" hidden data-i18n="offline"></p>
+
+<dialog class="info" id="infoDialog">
+  <h2 class="info__title" id="infoTitle"></h2>
+  <div class="info__body" id="infoBody"></div>
+  <div class="info__actions">
+    <a class="btn btn--ghost" id="infoPortal" target="_blank" rel="noopener noreferrer"></a>
+    <button type="button" class="btn btn--primary" id="infoClose"></button>
+  </div>
+</dialog>
 
 <script type="module" src="assets/js/app.js"></script>
 </body>

@@ -1,11 +1,22 @@
 /**
- * Cache-first shell so the hub opens instantly from the home screen, and still
- * opens with no network (the portals themselves obviously need one).
+ * Offline shell for the hub.
  *
- * Bump CACHE when any shell file changes; the old cache is dropped on activate.
+ * Two strategies, chosen by what the file is:
+ *
+ *  - Code and markup (navigations, CSS, JS, the manifest) are **network-first**, so a
+ *    deploy actually reaches an installed home-screen copy on the next launch. v1 was
+ *    cache-first here, which pinned installed copies to the version they were first
+ *    opened with.
+ *  - Images and the font are **cache-first**: they are large, effectively immutable, and
+ *    change only via a new filename.
+ *
+ * Bump CACHE whenever the shell list changes; old caches are dropped on activate.
  */
 
-const CACHE = 'cet10hub-v1';
+const CACHE = 'cet10hub-v2';
+
+/** How long to wait for the network before falling back to cache, in ms. */
+const NETWORK_TIMEOUT = 3000;
 
 const SHELL = [
   '.',
@@ -15,6 +26,7 @@ const SHELL = [
   'assets/js/app.js',
   'assets/js/i18n.js',
   'assets/data/gyms.js',
+  'assets/data/hours.js',
   'assets/fonts/roboto-latin-var.woff2',
   'assets/img/bdr.webp',
   'assets/img/jupiter.webp',
@@ -41,22 +53,50 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/** Assets safe to serve from cache indefinitely. */
+const isImmutable = (pathname) => /\.(webp|png|jpg|svg|woff2?)$/i.test(pathname);
+
+async function put(request, response) {
+  if (response.ok && response.type === 'basic') {
+    const cache = await caches.open(CACHE);
+    await cache.put(request, response.clone());
+  }
+  return response;
+}
+
+async function cacheFirst(request) {
+  const hit = await caches.match(request);
+  if (hit) return hit;
+  return put(request, await fetch(request));
+}
+
+async function networkFirst(request) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NETWORK_TIMEOUT);
+  try {
+    // A slow or captive network should not out-wait the cached copy.
+    // `no-store` bypasses the browser's own HTTP cache, which otherwise happily
+    // re-serves stale code here and defeats the whole point of network-first.
+    const response = await fetch(request, { signal: controller.signal, cache: 'no-store' });
+    return await put(request, response);
+  } catch {
+    return (await caches.match(request))
+      ?? (await caches.match('index.html'))
+      ?? Response.error();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  if (request.method !== 'GET') return;
 
-  // Only ever serve our own origin from cache — portal links must hit the network.
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) {
-    return;
-  }
+  const url = new URL(request.url);
+  // Portal links and anything else off-origin must always hit the network untouched.
+  if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.match(request).then((hit) => hit ?? fetch(request).then((response) => {
-      // Stash successful same-origin responses so first-visit misses warm up too.
-      if (response.ok && response.type === 'basic') {
-        const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, copy));
-      }
-      return response;
-    }).catch(() => caches.match('index.html'))),
+    isImmutable(url.pathname) ? cacheFirst(request) : networkFirst(request),
   );
 });
