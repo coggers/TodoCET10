@@ -713,6 +713,37 @@ body {
   .footer-link:hover { color: var(--brand); }
 }
 
+/* ---------- privacy notice ---------- */
+
+.privacy__updated {
+  margin: -0.4rem 0 0.9rem;
+  color: var(--text-soft);
+  font-size: 0.74rem;
+}
+
+.privacy__body {
+  max-height: min(58vh, 30rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.privacy__heading {
+  margin: 0.9rem 0 0.25rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.privacy__heading:first-child { margin-top: 0; }
+
+.privacy__body p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.55;
+}
+
 /* ---------- feedback form ---------- */
 
 .field {

@@ -614,6 +614,46 @@ const feedbackError = document.getElementById('feedbackError');
 const feedbackMessage = document.getElementById('feedbackMessage');
 const feedbackContact = document.getElementById('feedbackContact');
 
+const privacyDialog = document.getElementById('privacyDialog');
+
+/**
+ * GDPR Article 13 transparency notice. Lives in a dialog like everything else,
+ * but `#privacy` opens it directly so it still has a linkable address — useful
+ * if the app is ever listed somewhere that demands a privacy URL.
+ */
+function openPrivacy(strings) {
+  document.getElementById('privacyTitle').textContent = strings.privacyTitle;
+  document.getElementById('privacyUpdated').textContent = strings.privacyUpdated;
+
+  document.getElementById('privacyBody').replaceChildren(
+    ...strings.privacySections.flatMap(([heading, body]) => {
+      const h = document.createElement('h3');
+      h.className = 'privacy__heading';
+      h.textContent = heading;
+      const p = document.createElement('p');
+      p.textContent = body;
+      return [h, p];
+    }),
+  );
+
+  const close = document.getElementById('privacyClose');
+  close.textContent = strings.infoClose;
+  close.onclick = () => privacyDialog.close();
+
+  if (!privacyDialog.open) privacyDialog.showModal();
+}
+
+privacyDialog.addEventListener('click', (event) => {
+  if (event.target === privacyDialog) privacyDialog.close();
+});
+
+// Drop the fragment on close so reloading does not reopen it.
+privacyDialog.addEventListener('close', () => {
+  if (location.hash === '#privacy') {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+});
+
 function renderFooterLinks(strings) {
   footerLinks.replaceChildren();
 
@@ -623,9 +663,15 @@ function renderFooterLinks(strings) {
   feedback.textContent = strings.feedback;
   feedback.addEventListener('click', () => openFeedback(strings));
 
+  const privacy = document.createElement('button');
+  privacy.type = 'button';
+  privacy.className = 'footer-link';
+  privacy.textContent = strings.privacy;
+  privacy.addEventListener('click', () => openPrivacy(strings));
+
   const repo = externalLink(REPO_URL, 'footer-link', strings.sourceCode);
 
-  footerLinks.append(feedback, repo);
+  footerLinks.append(feedback, privacy, repo);
 }
 
 function openFeedback(strings) {
@@ -716,6 +762,12 @@ function syncOnlineState() {
 
 render();
 syncOnlineState();
+
+// /#privacy is a stable address for the notice.
+if (location.hash === '#privacy') openPrivacy(t(lang));
+addEventListener('hashchange', () => {
+  if (location.hash === '#privacy') openPrivacy(t(lang));
+});
 addEventListener('online', syncOnlineState);
 addEventListener('offline', syncOnlineState);
 

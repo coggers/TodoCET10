@@ -105,6 +105,32 @@ Interface text is in [`assets/js/i18n.js`](assets/js/i18n.js) — Catalan, Spani
 The language follows the device, falls back to English, and can be overridden with the
 buttons in the footer (the choice is remembered).
 
+## Privacy and EU compliance
+
+There is a privacy notice in the footer, also reachable at `/#privacy`, translated into all
+three languages. It exists because GDPR Article 13 requires a transparency notice as soon
+as any personal data is processed — here, feedback submissions and the host's server logs.
+
+**There is deliberately no cookie or consent banner, and none is required.** The ePrivacy
+rule on storing information on a user's device exempts storage that is strictly necessary
+for a service the user explicitly asked for. The only things stored are four preferences
+the user sets themselves — language, favourite centre, sort and filter — and there is no
+analytics, advertising, tracking, profiling or third-party cookie anywhere in the app. A
+test asserts this stays true: it fails if normal use produces any third-party request, any
+cookie, or any storage key outside the `cet10hub.` prefix.
+
+Location is read on the device and discarded; it is never transmitted or stored, so the
+browser's own permission prompt is the only consent mechanism needed.
+
+### If donations or advertising are added later
+
+- **Donations** change little. A payment provider becomes a separate controller and the
+  notice needs a paragraph. Still no consent banner.
+- **Advertising changes everything.** Ad tech sets non-essential identifiers, which require
+  prior opt-in consent with a real reject option — in practice a consent management
+  platform, plus the accompanying legal work. Do not add ad code without that; retrofitting
+  consent is far harder than the ad tag itself.
+
 ## Feedback
 
 The footer has a **Send feedback** link opening an in-app form, and a **Source code** link
