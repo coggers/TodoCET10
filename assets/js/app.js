@@ -8,18 +8,24 @@ const langBar = document.getElementById('langs');
 const offlineBanner = document.getElementById('offline');
 const sortButton = document.getElementById('sort');
 const openNowButton = document.getElementById('openNow');
+const resetButton = document.getElementById('reset');
 const sortNote = document.getElementById('sortNote');
 const emptyNote = document.getElementById('empty');
 const infoDialog = document.getElementById('infoDialog');
 
 const SORT_KEY = 'cet10hub.sort';
 const OPEN_KEY = 'cet10hub.openNow';
+const FAV_KEY = 'cet10hub.favourite';
 
 let lang = detectLang();
 /** Set once geolocation succeeds; keys are gym ids, values km. */
 let distances = null;
 let sortMode = localStorage.getItem(SORT_KEY) === 'distance' ? 'distance' : 'default';
 let openOnly = localStorage.getItem(OPEN_KEY) === '1';
+/** Gym id, or null. Survives reloads; unaffected by sort, filter or reset. */
+let favourite = GYMS.some((g) => g.id === localStorage.getItem(FAV_KEY))
+  ? localStorage.getItem(FAV_KEY)
+  : null;
 let locating = false;
 /** Which i18n key the line under the sort button is currently showing. */
 let noteKey = 'locationPrivacy';
@@ -36,6 +42,7 @@ const ICONS = {
   call: '<path d="M7.7 4H4.4A1.4 1.4 0 003 5.5 15.5 15.5 0 0018.5 21a1.4 1.4 0 001.5-1.4v-3.3l-3.6-1.2-1.9 1.9a12.4 12.4 0 01-5.5-5.5l1.9-1.9z"/>',
   directions: '<path d="M19 10.4c0 5-7 10.6-7 10.6s-7-5.6-7-10.6a7 7 0 1114 0z"/><circle cx="12" cy="10.2" r="2.5"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/>',
+  reset: '<path d="M20 12a8 8 0 11-2.6-5.9"/><path d="M20 4v4.5h-4.5"/>',
   reception: '<path d="M4 13a8 8 0 1116 0"/><path d="M4 13v3a2 2 0 002 2h1v-5H6a2 2 0 00-2 2z"/><path d="M20 13v3a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2z"/><path d="M17 18v.6a2.4 2.4 0 01-2.4 2.4H13"/>',
 };
 
@@ -72,12 +79,26 @@ function externalLink(href, className, text, label) {
 /** Closing soon still counts as open — you can still get a session in. */
 const isOpenNow = (gym) => statusFor(gym.id).state !== 'closed';
 
-/** Gyms to show, after the distance sort and the open-now filter. */
+/** True when the user has asked for an explicit ordering or subset. */
+const hasCustomView = () => (sortMode === 'distance' && distances) || openOnly;
+
+/** Default view: the favourite is pinned to the top, the rest keep their order. */
+const favouriteFirst = () => (favourite
+  ? [...GYMS].sort((a, b) => (b.id === favourite) - (a.id === favourite))
+  : GYMS);
+
+/**
+ * Gyms for the main list. Sorting or filtering is an explicit request, so it
+ * overrides the favourite's pinned position rather than fighting with it.
+ */
 function visibleGyms() {
-  const sorted = sortMode === 'distance' && distances
-    ? [...GYMS].sort((a, b) => distances[a.id] - distances[b.id])
-    : GYMS;
-  return openOnly ? sorted.filter(isOpenNow) : sorted;
+  let list;
+  if (sortMode === 'distance' && distances) {
+    list = [...GYMS].sort((a, b) => distances[a.id] - distances[b.id]);
+  } else {
+    list = openOnly ? GYMS : favouriteFirst();
+  }
+  return openOnly ? list.filter(isOpenNow) : list;
 }
 
 function formatDistance(km) {
@@ -152,6 +173,33 @@ function openInfo(gym, strings) {
 
 // ---------------------------------------------------------------- rendering
 
+/** Star toggle overlaid on the card photo. One favourite at a time. */
+function favouriteButton(gym, strings) {
+  const isFav = favourite === gym.id;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'fav';
+  button.dataset.gym = gym.id;
+  button.setAttribute('aria-pressed', String(isFav));
+  button.setAttribute('aria-label',
+    isFav ? strings.unsetFavourite(gym.name) : strings.setFavourite(gym.name));
+  button.innerHTML = starSvg(isFav, 'fav__icon');
+
+  button.addEventListener('click', () => {
+    favourite = isFav ? null : gym.id;
+    if (favourite) localStorage.setItem(FAV_KEY, favourite);
+    else localStorage.removeItem(FAV_KEY);
+    render();
+  });
+
+  return button;
+}
+
+const starSvg = (filled, className) =>
+  `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+     fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round">${ICONS.join}</svg>`;
+
 function renderGym(gym, strings) {
   const item = document.createElement('li');
   item.className = 'gym';
@@ -163,6 +211,7 @@ function renderGym(gym, strings) {
   media.innerHTML = `
     <img src="${gym.photo}" alt="" width="1000" height="563" loading="lazy" decoding="async">
     <h2 class="gym__name"><span class="gym__cem">CEM</span>${gym.name}</h2>`;
+  media.append(favouriteButton(gym, strings));
 
   const actions = document.createElement('div');
   actions.className = 'gym__actions';
@@ -186,11 +235,13 @@ function renderGym(gym, strings) {
   return item;
 }
 
-function renderQuickBook(gyms, strings) {
+/**
+ * Quick book deliberately ignores the sort and the filter: it is the one place
+ * where every centre stays in the same spot, so the tap is muscle memory.
+ * The favourite is marked with a star but is not moved, for the same reason.
+ */
+function renderQuickBook(strings) {
   quickBook.replaceChildren();
-  // Nothing to quick-book when the filter has emptied the list.
-  quickBook.hidden = gyms.length === 0;
-  if (!gyms.length) return;
 
   const label = document.createElement('span');
   label.className = 'quickbook__label';
@@ -198,12 +249,18 @@ function renderQuickBook(gyms, strings) {
 
   const row = document.createElement('div');
   row.className = 'quickbook__row';
-  row.style.setProperty('--cols', String(gyms.length));
-  for (const gym of gyms) {
+  row.style.setProperty('--cols', String(GYMS.length));
+  for (const gym of GYMS) {
+    const isFav = favourite === gym.id;
     const pill = externalLink(portalUrl(gym, 'book'), 'quickbook__pill', gym.name,
-      strings.quickBookFor(gym.name));
+      isFav ? `${strings.quickBookFor(gym.name)} — ${strings.favourite}`
+        : strings.quickBookFor(gym.name));
     pill.style.setProperty('--accent', gym.accent);
     pill.style.setProperty('--ink', inkFor(gym.accent));
+    if (isFav) {
+      pill.classList.add('quickbook__pill--fav');
+      pill.insertAdjacentHTML('afterbegin', starSvg(true, 'quickbook__star'));
+    }
     row.append(pill);
   }
 
@@ -228,6 +285,13 @@ function renderSort(strings) {
   openNowButton.insertAdjacentHTML('afterbegin', icon('clock', 'pill-btn__icon'));
   openNowButton.append(document.createTextNode(strings.openNow));
   openNowButton.setAttribute('aria-pressed', String(openOnly));
+
+  // Only offer a reset when there is something to reset.
+  resetButton.hidden = !hasCustomView();
+  resetButton.replaceChildren();
+  resetButton.insertAdjacentHTML('afterbegin', icon('reset', 'pill-btn__icon'));
+  resetButton.append(document.createTextNode(strings.reset));
+  resetButton.setAttribute('aria-label', strings.resetAria);
 }
 
 function renderLangs() {
@@ -254,7 +318,7 @@ function render() {
 
   const gyms = visibleGyms();
   gymList.replaceChildren(...gyms.map((gym) => renderGym(gym, strings)));
-  renderQuickBook(gyms, strings);
+  renderQuickBook(strings);
   renderSort(strings);
   sortNote.textContent = strings[noteKey];
 
@@ -325,6 +389,16 @@ openNowButton.addEventListener('click', () => {
   openOnly = !openOnly;
   if (openOnly) localStorage.setItem(OPEN_KEY, '1');
   else localStorage.removeItem(OPEN_KEY);
+  render();
+});
+
+// Clears the view only — the favourite is a separate preference and survives.
+resetButton.addEventListener('click', () => {
+  sortMode = 'default';
+  openOnly = false;
+  noteKey = 'locationPrivacy';
+  localStorage.removeItem(SORT_KEY);
+  localStorage.removeItem(OPEN_KEY);
   render();
 });
 

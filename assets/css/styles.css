@@ -138,6 +138,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
   min-height: 46px;
   padding: 0.3rem 0.45rem;
   border-radius: 12px;
@@ -149,6 +150,17 @@ body {
   text-align: center;
   text-decoration: none;
   text-wrap: balance;
+}
+
+.quickbook__pill--fav {
+  outline: 2px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  outline-offset: -2px;
+}
+
+.quickbook__star {
+  width: 13px;
+  height: 13px;
+  flex: none;
 }
 
 .quickbook__pill:active { transform: scale(0.97); }
@@ -188,6 +200,13 @@ body {
 }
 
 .pill-btn:disabled { opacity: 0.65; cursor: default; }
+
+.pill-btn--reset {
+  border-style: dashed;
+  color: var(--text-soft);
+}
+
+.pill-btn--reset[hidden] { display: none; }
 
 .pill-btn__icon { width: 15px; height: 15px; flex: none; }
 
@@ -284,6 +303,41 @@ body {
   letter-spacing: -0.015em;
   line-height: 1.1;
   text-shadow: 0 1px 10px rgb(0 0 0 / 45%);
+}
+
+/* ---------- favourite ---------- */
+
+.fav {
+  position: absolute;
+  z-index: 2;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(8 22 30 / 42%);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+
+.fav__icon { width: 22px; height: 22px; }
+
+.fav[aria-pressed='true'] {
+  background: rgb(8 22 30 / 55%);
+  color: #ffd54a;
+}
+
+.fav:active { transform: scale(0.92); }
+
+@media (hover: hover) {
+  .fav:hover { background: rgb(8 22 30 / 62%); }
 }
 
 .gym__cem {
