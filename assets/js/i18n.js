@@ -25,6 +25,33 @@ const STRINGS = {
     language: 'Idioma',
     footer: 'Enllaça als portals oficials de CET10. No és una app oficial.',
     offline: 'Sense connexió — els enllaços s’obriran quan tornis a tenir xarxa.',
+
+    reception: 'Recepció virtual',
+    quickBook: 'Reserva ràpida',
+    quickBookFor: (name) => `Reservar classes a CEM ${name}`,
+
+    sortByDistance: 'Ordenar per distància',
+    sortDefault: 'Ordre original',
+    locationPrivacy: 'La teva ubicació es llegeix només al teu dispositiu, per ordenar aquesta llista. No s’envia enlloc.',
+    locationDenied: 'No s’ha pogut obtenir la ubicació. Es manté l’ordre original.',
+    locating: 'Obtenint ubicació…',
+
+    statusOpen: (close) => `Obert fins a les ${close}`,
+    statusSoon: (mins) => `Tanca en ${mins} min`,
+    statusClosed: (open) => `Tancat · obre a les ${open}`,
+    statusHoliday: 'Festiu — horari de diumenge',
+    statusLabel: 'Estat d’obertura',
+
+    infoTitle: 'Com es calcula l’horari',
+    infoBody: [
+      'Aquest indicador utilitza l’horari habitual publicat pel centre i l’hora actual a Barcelona.',
+      'Els dies festius s’apliquen els horaris de diumenge, tal com indica el mateix centre.',
+      'No té en compte horaris d’estiu, tancaments per manteniment ni canvis puntuals, i mai consulta el centre en directe.',
+      'Si t’hi jugues el viatge, comprova-ho al portal del centre.',
+    ],
+    infoOpenPortal: 'Obrir el portal per comprovar-ho',
+    infoClose: 'Entesos',
+    infoAria: 'Com es calcula l’horari',
   },
   es: {
     tagline: 'Reserva clases en tus centros',
@@ -43,6 +70,33 @@ const STRINGS = {
     language: 'Idioma',
     footer: 'Enlaza a los portales oficiales de CET10. No es una app oficial.',
     offline: 'Sin conexión — los enlaces se abrirán cuando vuelvas a tener red.',
+
+    reception: 'Recepción virtual',
+    quickBook: 'Reserva rápida',
+    quickBookFor: (name) => `Reservar clases en CEM ${name}`,
+
+    sortByDistance: 'Ordenar por distancia',
+    sortDefault: 'Orden original',
+    locationPrivacy: 'Tu ubicación se lee solo en tu dispositivo, para ordenar esta lista. No se envía a ningún sitio.',
+    locationDenied: 'No se ha podido obtener la ubicación. Se mantiene el orden original.',
+    locating: 'Obteniendo ubicación…',
+
+    statusOpen: (close) => `Abierto hasta las ${close}`,
+    statusSoon: (mins) => `Cierra en ${mins} min`,
+    statusClosed: (open) => `Cerrado · abre a las ${open}`,
+    statusHoliday: 'Festivo — horario de domingo',
+    statusLabel: 'Estado de apertura',
+
+    infoTitle: 'Cómo se calcula el horario',
+    infoBody: [
+      'Este indicador usa el horario habitual publicado por el centro y la hora actual en Barcelona.',
+      'Los días festivos se aplican los horarios de domingo, tal como indica el propio centro.',
+      'No tiene en cuenta horarios de verano, cierres por mantenimiento ni cambios puntuales, y nunca consulta al centro en directo.',
+      'Si te juegas el viaje, compruébalo en el portal del centro.',
+    ],
+    infoOpenPortal: 'Abrir el portal para comprobarlo',
+    infoClose: 'Entendido',
+    infoAria: 'Cómo se calcula el horario',
   },
   en: {
     tagline: 'Book classes at your centres',
@@ -61,6 +115,33 @@ const STRINGS = {
     language: 'Language',
     footer: 'Links to the official CET10 portals. Not an official app.',
     offline: 'Offline — links will open once you are back on a network.',
+
+    reception: 'Virtual reception',
+    quickBook: 'Quick book',
+    quickBookFor: (name) => `Book a class at CEM ${name}`,
+
+    sortByDistance: 'Sort by distance',
+    sortDefault: 'Original order',
+    locationPrivacy: 'Your location is read on your device only, to order this list. It is never sent anywhere.',
+    locationDenied: 'Could not get your location. Keeping the original order.',
+    locating: 'Getting your location…',
+
+    statusOpen: (close) => `Open until ${close}`,
+    statusSoon: (mins) => `Closes in ${mins} min`,
+    statusClosed: (open) => `Closed · opens ${open}`,
+    statusHoliday: 'Public holiday — Sunday hours',
+    statusLabel: 'Opening status',
+
+    infoTitle: 'How this opening status works',
+    infoBody: [
+      'This uses the centre’s published regular timetable and the current time in Barcelona.',
+      'On public holidays the Sunday hours are applied, which is the centre’s own rule.',
+      'It does not account for summer timetables, maintenance closures or one-off changes, and it never checks with the centre live.',
+      'If the trip matters, confirm on the centre’s portal.',
+    ],
+    infoOpenPortal: 'Open the portal to check',
+    infoClose: 'Got it',
+    infoAria: 'How this opening status works',
   },
 };
 

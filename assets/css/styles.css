@@ -100,6 +100,88 @@ body {
   opacity: 0.95;
 }
 
+/* ---------- quick book ---------- */
+
+.quickbook {
+  padding-block: 0.9rem 0.15rem;
+}
+
+.quickbook__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* Three fixed columns: all three centres must be reachable without scrolling. */
+.quickbook__row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+
+.quickbook__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.3rem 0.45rem;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  text-wrap: balance;
+}
+
+.quickbook__pill:active { transform: scale(0.97); }
+
+/* ---------- toolbar ---------- */
+
+.toolbar {
+  margin-top: 0.7rem;
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.sort[aria-pressed='true'] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  font-weight: 500;
+}
+
+.sort:disabled { opacity: 0.65; cursor: default; }
+
+.sort__icon { width: 15px; height: 15px; flex: none; }
+
+.toolbar__privacy {
+  margin: 0.45rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.73rem;
+  font-weight: 300;
+  line-height: 1.4;
+}
+
 /* ---------- gym cards ---------- */
 
 .gyms {
@@ -166,6 +248,135 @@ body {
   text-transform: uppercase;
   opacity: 0.85;
   margin-bottom: 0.15rem;
+}
+
+/* ---------- opening status ---------- */
+
+.status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem 0;
+}
+
+.status__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.6rem 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status__pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status__pill--open {
+  background: color-mix(in srgb, #04b47c 16%, transparent);
+  color: #04794f;
+}
+
+.status__pill--soon {
+  background: color-mix(in srgb, #ff9900 20%, transparent);
+  color: #9a5b00;
+}
+
+.status__pill--closed {
+  background: color-mix(in srgb, var(--text-soft) 16%, transparent);
+  color: var(--text-soft);
+}
+
+@media (prefers-color-scheme: dark) {
+  .status__pill--open { color: #35d69b; }
+  .status__pill--soon { color: #ffb347; }
+}
+
+.status__holiday {
+  font-size: 0.74rem;
+  color: var(--text-soft);
+}
+
+.status__distance {
+  margin-left: auto;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.status__info {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.7rem;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Keep the glyph small but give it a 44px hit area, without disturbing the row. */
+.status__info::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+}
+
+@media (hover: hover) {
+  .status__info:hover { border-color: var(--brand); color: var(--brand); }
+}
+
+/* ---------- info dialog ---------- */
+
+.info {
+  width: min(calc(100% - 2rem), 26rem);
+  padding: 1.3rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.info::backdrop { background: rgb(8 22 30 / 55%); }
+
+.info__title {
+  margin: 0 0 0.7rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.info__body p {
+  margin: 0 0 0.65rem;
+  font-size: 0.87rem;
+  font-weight: 300;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.info__actions {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+
+.info__actions .btn--primary {
+  background: var(--brand);
+  color: #fff;
 }
 
 .gym__actions {
