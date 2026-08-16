@@ -56,8 +56,10 @@ there is no backend, and nothing is transmitted anywhere. Declining leaves the o
 
 ## Add it to your home screen
 
-There is an **Add to Home Screen** button in the footer, which hides itself once the app is
-installed. What it does depends on the platform, because the platforms genuinely differ:
+There is a button in the footer that switches between two jobs. Before the app is installed
+it offers to add it; once installed it becomes **Share**, so you can still hand the link to
+someone at the gym. It is never hidden — an earlier version hid it once installed, which
+meant the person who installed it could never find it again. What it does depends on the platform, because the platforms genuinely differ:
 
 - **Android / Chromium** — captures `beforeinstallprompt` and replays it on tap, so this is
   a real one-tap install. Chrome's own mini-infobar is suppressed so the button is the only

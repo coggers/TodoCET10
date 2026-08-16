@@ -45,6 +45,8 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/>',
   reset: '<path d="M20 12a8 8 0 11-2.6-5.9"/><path d="M20 4v4.5h-4.5"/>',
   install: '<rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M12 8v7"/><path d="M9 12l3 3 3-3"/>',
+  share: '<path d="M12 3v12"/><path d="M8 6.5L12 2.7l4 3.8"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/>',
+  check: '<path d="M4.5 12.5l5 5 10-11"/>',
   reception: '<path d="M4 13a8 8 0 1116 0"/><path d="M4 13v3a2 2 0 002 2h1v-5H6a2 2 0 00-2 2z"/><path d="M20 13v3a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2z"/><path d="M17 18v.6a2.4 2.4 0 01-2.4 2.4H13"/>',
 };
 
@@ -493,13 +495,52 @@ const isInstalled = () => matchMedia('(display-mode: standalone)').matches
   || matchMedia('(display-mode: fullscreen)').matches
   || navigator.standalone === true;
 
+/**
+ * One button, two jobs. Before install it offers to add the app; afterwards it
+ * turns into Share, so there is always something useful there — and so the
+ * person who already installed it can still hand the link to someone else.
+ */
 function refreshInstallButton() {
   const strings = t(lang);
-  // Nothing to offer once it is already on the home screen.
-  installButton.hidden = isInstalled();
+  const installed = isInstalled();
+
+  installButton.dataset.mode = installed ? 'share' : 'install';
   installButton.replaceChildren();
-  installButton.insertAdjacentHTML('afterbegin', icon('install', 'install__icon'));
-  installButton.append(document.createTextNode(strings.install));
+  installButton.insertAdjacentHTML('afterbegin',
+    icon(installed ? 'share' : 'install', 'install__icon'));
+  installButton.append(document.createTextNode(installed ? strings.share : strings.install));
+}
+
+/** Brief confirmation without a full re-render, which would clobber it. */
+function flashShared(strings) {
+  installButton.replaceChildren();
+  installButton.insertAdjacentHTML('afterbegin', icon('check', 'install__icon'));
+  installButton.append(document.createTextNode(strings.shareCopied));
+  setTimeout(() => refreshInstallButton(), 2200);
+}
+
+async function shareApp() {
+  const strings = t(lang);
+  const url = location.href.split('#')[0];
+  const payload = { title: 'CET10 Hub', text: strings.shareText, url };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(payload);
+      return;
+    } catch {
+      // Cancelled, or the platform refused — fall through to copying.
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(url);
+    flashShared(strings);
+  } catch {
+    // Clipboard blocked (insecure context, permissions): show the URL instead
+    // of failing silently.
+    prompt(strings.shareCopied, url); // eslint-disable-line no-alert
+  }
 }
 
 function openInstallDialog() {
@@ -533,16 +574,21 @@ addEventListener('beforeinstallprompt', (event) => {
 
 addEventListener('appinstalled', () => {
   deferredPrompt = null;
-  installButton.hidden = true;
+  refreshInstallButton();
 });
 
 installButton.addEventListener('click', async () => {
+  if (installButton.dataset.mode === 'share') {
+    await shareApp();
+    return;
+  }
+
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     // The deferred event is single-use; Chrome will fire a fresh one if declined.
     deferredPrompt = null;
-    if (outcome === 'accepted') installButton.hidden = true;
+    if (outcome === 'accepted') refreshInstallButton();
     return;
   }
   openInstallDialog();
