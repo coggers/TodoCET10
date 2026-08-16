@@ -76,7 +76,7 @@ const withKey = async (ctx) => {
   ok(!(await p.locator('#feedbackFallback').isVisible()), 'configured: no GitHub fallback');
   ok(/Only what you type/i.test(await p.locator('#feedbackPrivacy').textContent()), 'states plainly what is sent');
 
-  // block the captcha script (no network in tests) and stub a solved token
+  // The script is already stubbed at context level; this just supplies a token.
   const solve = () => p.evaluate(() => {
     let ta = document.querySelector('textarea[name="h-captcha-response"]');
     if (!ta) { ta = document.createElement('textarea'); ta.name='h-captcha-response'; ta.hidden=true;

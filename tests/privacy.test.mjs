@@ -66,12 +66,6 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
   await p.locator('#openNow').click(); await p.waitForTimeout(300);
   await p.locator('#reset').click(); await p.waitForTimeout(300);
   await p.locator('.status__info').first().click(); await p.waitForTimeout(300);
-  // hCaptcha sets a cookie once loaded. That is disclosed, and only happens on a
-  // form the user chose to open — but assert it comes from a named host, so an
-  // undisclosed third party dropping a cookie would fail the build.
-  const cookiesAfter = await c.cookies();
-  ok(cookiesAfter.every(k=>allowed.test(k.domain.replace(/^\./,''))),
-    `any cookie set belongs to a disclosed host (${cookiesAfter.map(k=>k.domain).join(', ')||'none'})`);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   await p.getByRole('button',{name:'Privacy'}).click(); await p.waitForTimeout(300);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
@@ -88,11 +82,19 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
   const allowed=/^(web3forms\.com|.*\.?hcaptcha\.com|api\.web3forms\.com)$/;
   ok(hosts.length>0, `opening feedback does load the captcha (${hosts.join(', ')||'none'})`);
   ok(hosts.every(h=>allowed.test(h)), `and only disclosed hosts (${hosts.join(', ')})`);
+
+  // Only now can the captcha have set anything. Assert any cookie belongs to a
+  // host the notice names, so an undisclosed third party would fail the build.
+  const cookiesAfter = await c.cookies();
+  ok(cookiesAfter.every(k=>allowed.test(k.domain.replace(/^\./,''))),
+    `any cookie set belongs to a disclosed host (${cookiesAfter.map(k=>k.domain).join(', ')||'none'})`);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   const stored=await p.evaluate(()=>Object.keys(localStorage));
   ok(stored.every(k=>k.startsWith('cet10hub.')), `only first-party preference keys (${stored.join(', ')})`);
   ok(stored.length<=4, `at most four preference keys (${stored.length})`);
-  ok(await p.evaluate(()=>document.cookie)==='', 'document.cookie empty');
+  // First-party specifically: the captcha's cookie lives on its own domain, and
+  // this site must still set none of its own.
+  ok(await p.evaluate(()=>document.cookie)==='', 'this origin sets no cookie of its own');
   await c.close();
 }
 

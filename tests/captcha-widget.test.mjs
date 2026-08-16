@@ -53,6 +53,37 @@ ok(await p.$$eval('textarea[name="h-captcha-response"]', (e) => e.length) === 1,
 ok((await p.evaluate(() => document.cookie)).includes('hcaptcha_sim'),
   'the captcha sets its cookie — which the privacy notice discloses');
 
+/*
+ * The challenge must be able to paint over the sheet.
+ *
+ * hCaptcha appends its challenge to <body> and relies on a high z-index. A
+ * dialog opened with showModal() is promoted to the browser's top layer, which
+ * z-index cannot compete with at all, so the challenge rendered underneath the
+ * sheet and was impossible to complete. Stand in for it with an overlay of the
+ * same shape and ask the browser what is actually on top.
+ */
+const overlayOnTop = await p.evaluate(() => {
+  const overlay = document.createElement('div');
+  overlay.id = 'fake-challenge';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgb(0 0 0 / 50%)';
+  document.body.append(overlay);
+  const hit = document.elementFromPoint(innerWidth / 2, innerHeight / 2)?.id;
+  overlay.remove();
+  return hit;
+});
+ok(overlayOnTop === 'fake-challenge',
+  `the challenge paints above the open sheet (topmost element was #${overlayOnTop})`);
+
+// showModal() gave us this for free; show() means we apply it ourselves.
+const inertState = await p.evaluate(() => ({
+  behind: [...document.querySelectorAll('body > header, body > nav, body > main, body > footer, body > div.wrap')]
+    .every((el) => el.inert),
+  // Anything hCaptcha appends to <body> must stay reachable by keyboard.
+  sheet: document.getElementById('feedbackDialog').inert,
+}));
+ok(inertState.behind, 'the page behind the sheet is inert, so tab order and screen readers stay inside it');
+ok(!inertState.sheet, 'the sheet itself is not inert');
+
 // An unsolved widget must block before any network call.
 await p.locator('#feedbackMessage').fill('a real message');
 await p.locator('#feedbackSend').click();
@@ -70,6 +101,21 @@ ok(/Could not send/i.test(await p.locator('#feedbackError').textContent()),
   'a solved captcha reaches the network, so the aborted request reports a send failure');
 ok((await p.locator('#feedbackMessage').inputValue()) === 'a real message',
   'and the typed message survives the failure');
+
+// Escape and the backdrop are hand-rolled too, so they need holding down.
+await p.keyboard.press('Escape');
+await p.waitForTimeout(300);
+ok(!(await p.locator('#feedbackDialog').evaluate((d) => d.open)), 'Escape closes the sheet');
+ok(await p.evaluate(() =>
+  [...document.querySelectorAll('body > header, body > nav, body > main, body > footer, body > div.wrap')]
+    .every((el) => !el.inert)), 'and the page behind becomes usable again');
+ok(await p.locator('#feedbackBackdrop').evaluate((el) => el.hidden), 'and the backdrop goes with it');
+
+await p.locator('.footer-link').first().click();
+await p.waitForTimeout(400);
+await p.locator('#feedbackBackdrop').click({ position: { x: 5, y: 5 } });
+await p.waitForTimeout(300);
+ok(!(await p.locator('#feedbackDialog').evaluate((d) => d.open)), 'clicking the backdrop closes the sheet');
 
 await c.close();
 await b.close();

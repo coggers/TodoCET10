@@ -47,7 +47,18 @@ Things that have already caused wrong turns here:
   "tidy" it away.
 - **The list is rendered by JS**, so the first paint would shove the footer down. `.gyms`
   carries a `data-reserving` attribute holding the exact computed height until the first
-  render completes. Measured CLS is ~0.002; check it if you touch card layout.
+  render completes. Measured CLS is ~0.002; check it if you touch card layout. The same
+  fact makes the load look staged, so `<html data-loading>` hides the JS-rendered regions
+  until `render()` clears it. That attribute **must** always be cleared — if it is not,
+  the page is a header and nothing else. There is a `<noscript>` guard for the no-JS case
+  and a check in `tests/core-ui.test.mjs` for the rest.
+- **A modal `<dialog>` is in the browser's top layer, and z-index cannot compete with it.**
+  The feedback sheet therefore uses `show()`, not `showModal()`: hCaptcha appends its
+  challenge to `<body>` and relies on a high z-index, so inside a modal dialog the
+  challenge painted *underneath* it and could not be completed. The sheet supplies its own
+  backdrop element, Escape handling and focus restore. It marks the page behind `inert`
+  rather than trapping Tab, because a trap — or a blanket "everything that is not the
+  dialog" inert rule — would lock keyboard users out of the challenge itself.
 - **This sandbox cannot reach the gym portals or Web3Forms.** Cloudflare blocks the
   datacenter IP. You can verify URLs are *well-formed*, never that they *resolve*. Say
   which you did.
@@ -84,7 +95,7 @@ Accessibility work is driven by axe-core output, not intuition.
 
 ### Tests are the deliverable, not the receipt
 
-Sixteen suites live in `tests/`, run by `tests/run.mjs`, wired to CI. They exist because
+Seventeen suites live in `tests/`, run by `tests/run.mjs`, wired to CI. They exist because
 this project has been iterated on hard and the regressions are real: the timezone crash,
 the stale service worker, the referrer bug, the contrast failures.
 
@@ -150,7 +161,7 @@ assets/data/gyms.js     the three centres: URLs, coords, accents
 assets/data/hours.js    timetable, holiday calendar, status logic (pure, unit-tested)
 assets/data/feedback.js Web3Forms key and repo URLs
 sw.js                   offline shell — bump CACHE when the shell changes
-tests/                  16 suites + runner
+tests/                  17 suites + runner
 ```
 
 State lives in module-scope variables in `app.js` and persists to `localStorage` under the

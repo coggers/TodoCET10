@@ -35,6 +35,41 @@ for (const scheme of ['light', 'dark']) {
   await c.close();
 }
 
+/*
+ * The feedback sheet again, this time open.
+ *
+ * It is the one dialog that does not use showModal(), so the modality that a
+ * modal dialog gets for free — background out of the accessibility tree, focus
+ * starting inside — is hand-rolled and can silently rot. The captcha is stubbed
+ * out at context level so the runner is never asked to grade hCaptcha's markup.
+ */
+for (const scheme of ['light', 'dark']) {
+  const c = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: scheme, bypassCSP: true });
+  await c.route('https://web3forms.com/client/script.js',
+    (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+  await c.route(/hcaptcha\.com/, (r) => r.abort());
+  const p = await c.newPage();
+  await p.goto(BASE, { waitUntil: 'networkidle' });
+  await p.waitForTimeout(500);
+  await p.getByRole('button', { name: /feedback/i }).click();
+  await p.waitForTimeout(500);
+  await p.addScriptTag({ content: axe });
+
+  const res = await p.evaluate(async (tags) =>
+    window.axe.run(document, { runOnly: { type: 'tag', values: tags } }), TAGS);
+  ok(res.violations.length === 0, `${scheme}: 0 violations with the feedback sheet open`);
+  for (const v of res.violations) {
+    console.log(`          [${v.impact}] ${v.id}: ${v.help}`);
+    for (const n of v.nodes.slice(0, 4)) {
+      console.log(`             ${n.target.join(' ')} — ${(n.failureSummary || '').split('\n')[1] || ''}`);
+    }
+  }
+
+  ok(await p.evaluate(() => document.getElementById('feedbackDialog').contains(document.activeElement)),
+    `${scheme}: focus moves into the sheet on open`);
+  await c.close();
+}
+
 // Structural checks axe cannot assert on its own.
 {
   const c = await b.newContext({ viewport: { width: 390, height: 844 } });
