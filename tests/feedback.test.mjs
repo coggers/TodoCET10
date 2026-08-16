@@ -65,12 +65,27 @@ const withKey = async (ctx) => {
   ok(!(await p.locator('#feedbackFallback').isVisible()), 'configured: no GitHub fallback');
   ok(/Only what you type/i.test(await p.locator('#feedbackPrivacy').textContent()), 'states plainly what is sent');
 
+  // block the captcha script (no network in tests) and stub a solved token
+  await p.route('https://web3forms.com/client/script.js', r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
+  const solve = () => p.evaluate(() => {
+    let ta = document.querySelector('textarea[name="h-captcha-response"]');
+    if (!ta) { ta = document.createElement('textarea'); ta.name='h-captcha-response'; ta.hidden=true;
+               document.getElementById('feedbackForm').append(ta); }
+    ta.value = 'stub-captcha-token';
+  });
+
   // empty submit is blocked with a message, not a silent no-op
   await p.locator('#feedbackSend').click(); await p.waitForTimeout(300);
   ok(await p.locator('#feedbackError').isVisible(), 'empty message is rejected visibly');
   ok(posted===null, 'nothing posted for an empty message');
 
+  // an unsolved captcha must also block, before any network call
   await p.locator('#feedbackMessage').fill('The Maresme dot is wrong on Sundays');
+  await p.locator('#feedbackSend').click(); await p.waitForTimeout(300);
+  ok(posted===null, 'unsolved captcha blocks the submission');
+  ok(/robot/i.test(await p.locator('#feedbackError').textContent()), 'and says why');
+
+  await solve();
   await p.locator('#feedbackContact').fill('someone@example.com');
   await p.locator('#feedbackSend').click(); await p.waitForTimeout(600);
   ok(!!posted, 'submitting posts to the endpoint');
@@ -78,6 +93,7 @@ const withKey = async (ctx) => {
   ok(posted.message==='The Maresme dot is wrong on Sundays', 'sends the message verbatim');
   ok(posted.email==='someone@example.com', 'sends the optional reply address');
   ok(posted.language==='en', 'includes the UI language so replies match');
+  ok(posted['h-captcha-response']==='stub-captcha-token', 'sends the hCaptcha token');
   const keys=Object.keys(posted).sort();
   ok(!keys.some(k=>/location|coords|lat|lon|favourite|userAgent/i.test(k)),
     `no personal or usage data attached (${keys.join(', ')})`);
@@ -100,7 +116,10 @@ const withKey = async (ctx) => {
   const p=await c.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(500);
   await p.locator('.footer-link').first().click(); await p.waitForTimeout(300);
+  await p.route('https://web3forms.com/client/script.js', r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
   await p.locator('#feedbackMessage').fill('test');
+  await p.evaluate(() => { const ta=document.createElement('textarea'); ta.name='h-captcha-response';
+    ta.hidden=true; ta.value='stub'; document.getElementById('feedbackForm').append(ta); });
   await p.locator('#feedbackSend').click(); await p.waitForTimeout(700);
   ok(await p.locator('#feedbackError').isVisible(), 'failure shows an error');
   ok(/Could not send/i.test(await p.locator('#feedbackError').textContent()), 'error explains what to do');

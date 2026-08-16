@@ -424,6 +424,10 @@ function render() {
   renderFooterLinks(strings);
   refreshInstallButton();
 
+  // First paint is done; release the reserved height so a filtered list can
+  // shrink normally.
+  gymList.removeAttribute('data-reserving');
+
   // Only worth saying on the days when the booking window lands on the weekend.
   bookingNotice.hidden = !bookingGapAhead();
   bookingNotice.textContent = strings.bookingGap;
@@ -715,6 +719,29 @@ function renderFooterLinks(strings) {
   footerLinks.append(feedback, privacy, repo);
 }
 
+/**
+ * Web3Forms' client script renders the hCaptcha widget and injects the
+ * textarea that carries its token. It is loaded on first use rather than at
+ * page load, so simply visiting the hub still contacts nobody — which is what
+ * the privacy notice claims and what the tests assert.
+ */
+const CAPTCHA_SCRIPT = 'https://web3forms.com/client/script.js';
+let captchaRequested = false;
+
+function loadCaptcha() {
+  if (captchaRequested || !hasForm()) return;
+  captchaRequested = true;
+  const tag = document.createElement('script');
+  tag.src = CAPTCHA_SCRIPT;
+  tag.async = true;
+  tag.defer = true;
+  document.head.append(tag);
+}
+
+/** The token Web3Forms' script writes into a hidden textarea once solved. */
+const captchaToken = () =>
+  document.querySelector('textarea[name="h-captcha-response"]')?.value ?? '';
+
 function openFeedback(strings) {
   document.getElementById('feedbackTitle').textContent = strings.feedbackTitle;
 
@@ -726,6 +753,7 @@ function openFeedback(strings) {
   feedbackError.hidden = true;
 
   if (configured) {
+    loadCaptcha();
     document.getElementById('feedbackMessageLabel').textContent = strings.feedbackMessage;
     document.getElementById('feedbackContactLabel').textContent = strings.feedbackContact;
     document.getElementById('feedbackPrivacy').textContent = strings.feedbackPrivacy;
@@ -754,6 +782,13 @@ async function submitFeedback(event) {
     return;
   }
 
+  const captcha = captchaToken();
+  if (!captcha) {
+    feedbackError.textContent = strings.feedbackCaptcha;
+    feedbackError.hidden = false;
+    return;
+  }
+
   const send = document.getElementById('feedbackSend');
   send.disabled = true;
   feedbackError.hidden = true;
@@ -775,6 +810,7 @@ async function submitFeedback(event) {
         message,
         email: feedbackContact.value.trim() || undefined,
         language: lang,
+        'h-captcha-response': captcha,
       }),
     });
     if (!response.ok) throw new Error(String(response.status));
@@ -784,10 +820,13 @@ async function submitFeedback(event) {
     feedbackDone.hidden = false;
     feedbackMessage.value = '';
     feedbackContact.value = '';
+    window.hcaptcha?.reset();
     setTimeout(() => feedbackDialog.close(), 1600);
   } catch {
     feedbackError.textContent = strings.feedbackFailed;
     feedbackError.hidden = false;
+    // The token is consumed by the attempt, so a retry needs a fresh one.
+    window.hcaptcha?.reset();
   } finally {
     send.disabled = false;
   }

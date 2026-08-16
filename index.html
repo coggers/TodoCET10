@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#12303d" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.web3forms.com; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://web3forms.com https://hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.web3forms.com https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://*.hcaptcha.com; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/img/icon-192.png" sizes="192x192" type="image/png">
@@ -61,7 +61,7 @@
     <p class="toolbar__privacy" id="sortNote"></p>
   </div>
 
-  <ul class="gyms" id="gyms" aria-label="Centres"></ul>
+  <ul class="gyms" id="gyms" aria-label="Centres" data-reserving></ul>
 
   <p class="empty" id="empty" hidden></p>
 
@@ -117,6 +117,7 @@
       <span class="field__label" id="feedbackContactLabel"></span>
       <input class="field__input" id="feedbackContact" type="email" autocomplete="email" maxlength="200">
     </label>
+    <div class="h-captcha" data-captcha="true"></div>
     <p class="field__note" id="feedbackPrivacy"></p>
     <p class="field__error" id="feedbackError" role="alert" hidden></p>
     <div class="info__actions">

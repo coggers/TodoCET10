@@ -149,7 +149,13 @@ our own. Turning it on is a two-line job — get an access key emailed to you, p
 [`assets/data/feedback.js`](assets/data/feedback.js), redeploy. Until then the dialog offers
 GitHub Issues instead, so there is never a form that silently fails.
 
-Only the typed message, an optional reply address and the UI language are sent. No location,
+The form is protected by hCaptcha, which Web3Forms provides with no configuration. Both it
+and the Web3Forms client script are loaded **only when the feedback dialog is opened**, so
+simply visiting the hub still contacts nobody — a test asserts exactly that, and that the
+only hosts contacted afterwards are the ones the privacy notice names.
+
+Only the typed message, an optional reply address, the UI language and the captcha token are
+sent. No location,
 no usage data, nothing about which centres you use — there is a test asserting the request
 body contains nothing else.
 
@@ -174,6 +180,12 @@ not enough to wait for.
 Colours and type are taken from the centres' own sites: the shared CET10 blue `#61B4E4`,
 Roboto, and a per-centre accent so the three cards are tellable apart at a glance —
 Bac de Roda `#D1E605`, Júpiter `#61CE70`, Maresme `#FF9900`.
+
+## Contributing
+
+See [AGENTS.md](AGENTS.md) for how this project is built and the constraints that are easy
+to trip over — the service worker cache, the CSP ruling out third-party scripts, the
+reserved layout height, and why `Europe/Barcelona` is not a timezone.
 
 ## Tests and CI
 

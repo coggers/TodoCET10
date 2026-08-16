@@ -20,7 +20,8 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
   for (const [needle,label] of [
     ['local storage','names the device storage used'],
     ['location','covers geolocation'],
-    ['web3forms','names the processor'],
+    ['web3forms','names the form processor'],
+    ['hcaptcha','names the spam-check third party'],
     ['30 days','states the retention period'],
     ['united states','discloses where the data goes'],
     ['eea','flags the transfer out of the EEA'],
@@ -59,11 +60,24 @@ const base={viewport:{width:390,height:844},locale:'en-GB'};
   });
   const p=await c.newPage();
   await p.goto(BASE,{waitUntil:'networkidle'}); await p.waitForTimeout(800);
-  // exercise the app without submitting feedback
+  // Exercise everything except the feedback form: sorting, filtering, the
+  // status dialog, the privacy notice, the share sheet.
   await p.locator('#openNow').click(); await p.waitForTimeout(300);
-  await p.locator('.footer-link').first().click(); await p.waitForTimeout(300);
+  await p.locator('#reset').click(); await p.waitForTimeout(300);
+  await p.locator('.status__info').first().click(); await p.waitForTimeout(300);
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-  ok(thirdParty.length===0, `no third-party requests during normal use (${[...new Set(thirdParty)].join(', ')||'none'})`);
+  await p.getByRole('button',{name:'Privacy'}).click(); await p.waitForTimeout(300);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+  ok(thirdParty.length===0, `no third-party requests while simply using the app (${[...new Set(thirdParty)].join(', ')||'none'})`);
+
+  // Opening the feedback form is an opt-in, and may reach only the spam-check
+  // and form hosts the privacy notice names.
+  await p.getByRole('button',{name:'Send feedback'}).click(); await p.waitForTimeout(1200);
+  const hosts=[...new Set(thirdParty)];
+  const allowed=/^(web3forms\.com|.*\.?hcaptcha\.com|api\.web3forms\.com)$/;
+  ok(hosts.length>0, `opening feedback does load the captcha (${hosts.join(', ')||'none'})`);
+  ok(hosts.every(h=>allowed.test(h)), `and only disclosed hosts (${hosts.join(', ')})`);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   const cookies=await c.cookies();
   ok(cookies.length===0, `no cookies set (${cookies.length})`);
   const stored=await p.evaluate(()=>Object.keys(localStorage));

@@ -378,6 +378,35 @@ body {
   gap: 1.1rem;
 }
 
+/*
+ * The list is rendered by JS, so the first paint would otherwise be an empty
+ * box that suddenly grows and shoves the footer down — measured CLS 0.81.
+ * Reserve the exact height instead. Card height is the 16/8.2 media box plus a
+ * fixed block of controls, and the media box tracks the card width, so the
+ * whole thing is calculable. The attribute is removed after the first render,
+ * so filtering to fewer cards does not leave a reserved gap behind.
+ */
+.gyms[data-reserving] {
+  --card-width: calc(min(100vw, 34rem) - 2rem);
+  --card-controls: 322.5px;
+  min-height: calc(3 * (var(--card-width) * 0.5125 + var(--card-controls)) + 2 * 1.1rem);
+}
+
+@media (min-width: 26rem) {
+  /* Two-column actions above this width, so the controls block is shorter. */
+  .gyms[data-reserving] { --card-controls: 217.3px; }
+}
+
+/* These are always present once rendered, so their space can be held always. */
+.quickbook { min-height: 109px; }
+.toolbar { min-height: 80px; }
+.footer-links { min-height: 36px; }
+.langs { min-height: 38px; }
+
+@media (min-width: 26rem) {
+  .toolbar { min-height: 64px; }
+}
+
 .gym {
   background: var(--surface);
   border-radius: var(--radius);
